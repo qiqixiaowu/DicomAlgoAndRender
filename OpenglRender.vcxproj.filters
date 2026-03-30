@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{22e08b78-b4ef-4bdc-b560-7c82a93f3e8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="shader">
+      <UniqueIdentifier>{103cd7b6-be48-45bf-9035-a23b2eed4f71}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\dicom_utils.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\volume_build.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\camera.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\transferFunction.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\post_Processor.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shader.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mpr_renderer.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\dicom_utils.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\glad.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\volume_build.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\camera.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\shader.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main_optimized_example.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader\volume_frag_glsl.frag">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\volume_vert_glsl.vert">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\volume_frag_optimized.frag">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\volume_vert_optimized.vert">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\mpr_frag.frag">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\mpr_vert.vert">
+      <Filter>shader</Filter>
+    </None>
+  </ItemGroup>
+</Project>
