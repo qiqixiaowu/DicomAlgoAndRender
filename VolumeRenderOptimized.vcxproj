@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main_optimized_example.cpp" />
+    <ClCompile Include="src\trt_vessel_seg.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\volume_frag_optimized.frag" />
@@ -86,13 +87,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <IncludePath>F:\Demo\dcmtk\dcmtk-debug\include;F:\Demo\assimp\build\include;E:\glfw\Includes;E:\glad\include;E:\All\stb\stb;E:\All\glm;.\include;$(IncludePath)</IncludePath>
-    <LibraryPath>E:\All\glm\Debug;E:\glfw\Lib;F:\Demo\dcmtk\dcmtk-debug\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>F:\Demo\dcmtk\dcmtk-debug\include;F:\Demo\assimp\build\include;E:\glfw\Includes;E:\glad\include;E:\All\stb\stb;E:\All\glm;.\include;$(TRT_ROOT)\include;$(CUDA_PATH)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\All\glm\Debug;E:\glfw\Lib;F:\Demo\dcmtk\dcmtk-debug\lib;$(TRT_ROOT)\lib;$(CUDA_PATH)\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <IncludePath>F:\Demo\dcmtk\dcmtk-debug\include;F:\Demo\assimp\build\include;E:\glfw\Includes;E:\glad\include;E:\All\stb\stb;E:\All\glm;.\include;$(IncludePath)</IncludePath>
-    <LibraryPath>E:\All\glm\Debug;E:\glfw\Lib;F:\Demo\dcmtk\dcmtk-debug\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>F:\Demo\dcmtk\dcmtk-debug\include;F:\Demo\assimp\build\include;E:\glfw\Includes;E:\glad\include;E:\All\stb\stb;E:\All\glm;.\include;$(TRT_ROOT)\include;$(CUDA_PATH)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\All\glm\Debug;E:\glfw\Lib;F:\Demo\dcmtk\dcmtk-debug\lib;$(TRT_ROOT)\lib;$(CUDA_PATH)\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
@@ -169,6 +170,28 @@
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <!-- ════════════════════════════════════════════════════════════
+       TRT 扮展：当 TRT_ROOT 环境变量已设置时自动链接 TRT 库
+       启用方法：设置环境变量  TRT_ROOT = C:\TensorRT-x.x.x.x
+       并确保 CUDA_PATH 由 CUDA 安装程序设置（通常自动）
+       自动添加预处理定义 USE_TENSORRT + 链接 nvinfer.lib / cudart.lib
+       ════════════════════════════════════════════════════════════ -->
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And '$(TRT_ROOT)'!=''">
+    <ClCompile>
+      <PreprocessorDefinitions>USE_TENSORRT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>nvinfer.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64' And '$(TRT_ROOT)'!=''">
+    <ClCompile>
+      <PreprocessorDefinitions>USE_TENSORRT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>nvinfer.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>

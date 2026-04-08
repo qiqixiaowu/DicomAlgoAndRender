@@ -1,0 +1,37 @@
+# ============================================================
+#  医学图像配准训练配置
+# ============================================================
+
+# --- 数据 ---
+data:
+  image_size: 128                   # 输入图像尺寸
+  synthetic_train_size: 600         # 训练集大小
+  synthetic_val_size: 150           # 验证集大小
+  num_workers: 4
+
+# --- 模型 ---
+model:
+  name: "VoxelMorph2D"              # VoxelMorph2D
+  in_channels: 2                    # fixed + moving 拼接
+  enc_features: [16, 32, 32, 32]   # 编码器通道
+  dec_features: [32, 32, 32, 16]   # 解码器通道
+
+# --- 训练 ---
+training:
+  batch_size: 8
+  epochs: 80
+  learning_rate: 0.0001
+  weight_decay: 0.00001
+  optimizer: "Adam"
+  scheduler: "CosineAnnealing"
+  # 损失权重
+  sim_loss: "NCC"                   # NCC | MSE
+  sim_weight: 1.0
+  smooth_weight: 0.01               # 形变场平滑正则化权重
+
+# --- 日志 ---
+logging:
+  save_dir: "checkpoints/reg"
+  log_interval: 10
+  save_best: true
+  tensorboard: true

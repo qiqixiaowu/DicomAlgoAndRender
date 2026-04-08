@@ -1,0 +1,35 @@
+# ============================================================
+#  2D 医学图像分割训练配置
+# ============================================================
+
+# --- 数据 ---
+data:
+  image_size: 256                   # 输入图像尺寸 (正方形)
+  num_classes: 2                    # 分割类别数 (背景 + 前景)
+  synthetic_train_size: 800         # 合成训练集大小
+  synthetic_val_size: 200           # 合成验证集大小
+  num_workers: 4                    # DataLoader 工作线程
+
+# --- 模型 ---
+model:
+  name: "UNet2D"                    # 模型名称
+  in_channels: 1                    # 输入通道数 (灰度)
+  out_channels: 2                   # 输出通道数 = 类别数
+  features: [64, 128, 256, 512]     # 每层特征通道数
+
+# --- 训练 ---
+training:
+  batch_size: 8
+  epochs: 50
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  optimizer: "Adam"                 # Adam | SGD
+  scheduler: "CosineAnnealing"     # CosineAnnealing | StepLR | None
+  loss: "DiceCE"                   # Dice | CE | DiceCE
+
+# --- 日志 ---
+logging:
+  save_dir: "checkpoints/seg"
+  log_interval: 10                  # 每 N 个 batch 打印一次
+  save_best: true                   # 只保存最佳模型
+  tensorboard: true

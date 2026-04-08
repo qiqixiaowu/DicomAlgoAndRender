@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="F:\渲染\OpenglRender\OncologyAlgorithms\CMakeFiles\2d7da0eb5c5edd7083ff74819981a9af\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{519B0364-AF08-3D98-8F0A-C4F920D47EB9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

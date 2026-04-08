@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="F:\渲染\OpenglRender\OncologyAlgorithms\build\CMakeFiles\e4c3e54f7686edebc23df5048382fc58\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{5E8BF26E-5BAB-3BF7-A5F9-97233F0BE8A7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

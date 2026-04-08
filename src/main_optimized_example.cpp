@@ -44,15 +44,19 @@
 #define NOMINMAX
 #include <windows.h>
 #include <iostream>
+#include <fstream>
 #include <filesystem>
 #include <vector>
 #include <string>
+#include <algorithm>
 #include "camera.h"
 #include "dicom_utils.hpp"
 #include "volume_build.hpp"
 #include "post_Processor.h"
 #include "mpr_renderer.h"
 #include "region_growing.hpp"
+#include "trt_vessel_seg.hpp"  // TensorRT C++ 部署推理
+#include <chrono>
 
 // ==========================================
 // 全局状态结构体
@@ -646,6 +650,93 @@ GLuint createOrUpdateSegMaskTexture(const RegionGrowingResult& segResult, GLuint
 }
 
 // ==========================================
+// 深度学习分割掩码加载（从 Python 推理导出的 .raw 文件）
+// ==========================================
+/**
+ * 从 infer_vessel_seg.py 导出的 .raw + _meta.json 文件读取血管分割掩码。
+ *
+ * .raw 格式：uint8，连续存储，布局 [D][H][W]（C 行主序），
+ *           值 0=背景, 255=血管，与 RegionGrowingResult.mask 完全一致。
+ *
+ * 用法:
+ *   auto dlMask = loadDLVesselMask("vessel_mask.raw", "vessel_mask_meta.json");
+ *   if (!dlMask.mask.empty()) {
+ *       g_segMaskTexture = createOrUpdateSegMaskTexture(dlMask, g_segMaskTexture);
+ *       renderState.enableSegmentation = true;
+ *       renderState.segColor = glm::vec3(1.0f, 0.15f, 0.1f); // 血管红色
+ *   }
+ */
+RegionGrowingResult loadDLVesselMask(const std::string& rawPath,
+                                     const std::string& metaPath)
+{
+    RegionGrowingResult result;
+
+    // --- 1. 读取元数据 JSON（手动解析，避免依赖第三方库）---
+    uint32_t W = 0, H = 0, D = 0;
+    {
+        std::ifstream mf(metaPath);
+        if (!mf.is_open()) {
+            std::cerr << "[DLMask] 无法打开元数据文件: " << metaPath << std::endl;
+            return result;
+        }
+        std::string line;
+        while (std::getline(mf, line)) {
+            // 简单 key-value 解析："width": 512
+            auto extract = [&line](const std::string& key, uint32_t& val) {
+                auto pos = line.find("\"" + key + "\"");
+                if (pos != std::string::npos) {
+                    auto colon = line.find(':', pos);
+                    if (colon != std::string::npos) {
+                        val = static_cast<uint32_t>(std::stoul(line.substr(colon + 1)));
+                        return true;
+                    }
+                }
+                return false;
+            };
+            extract("width",  W);
+            extract("height", H);
+            extract("depth",  D);
+        }
+    }
+
+    if (W == 0 || H == 0 || D == 0) {
+        std::cerr << "[DLMask] 元数据解析失败（width/height/depth 为 0）: "
+                  << metaPath << std::endl;
+        return result;
+    }
+
+    // --- 2. 读取 .raw 二值掩码 ---
+    size_t expected = static_cast<size_t>(W) * H * D;
+    {
+        std::ifstream rf(rawPath, std::ios::binary);
+        if (!rf.is_open()) {
+            std::cerr << "[DLMask] 无法打开掩码文件: " << rawPath << std::endl;
+            return result;
+        }
+        result.mask.resize(expected);
+        rf.read(reinterpret_cast<char*>(result.mask.data()),
+                static_cast<std::streamsize>(expected));
+        if (!rf) {
+            std::cerr << "[DLMask] 读取不完整，文件可能已损坏: " << rawPath << std::endl;
+            result.mask.clear();
+            return result;
+        }
+    }
+
+    result.width  = W;
+    result.height = H;
+    result.depth  = D;
+    result.voxelCount = static_cast<uint64_t>(
+        std::count_if(result.mask.begin(), result.mask.end(),
+                      [](uint8_t v) { return v > 0; }));
+
+    std::cout << "[DLMask] 加载成功: " << rawPath << "\n"
+              << "         尺寸=" << W << "x" << H << "x" << D
+              << " 血管体素=" << result.voxelCount << "\n";
+    return result;
+}
+
+// ==========================================
 // 区域生长入口函数
 // ==========================================
 /**
@@ -867,18 +958,89 @@ int main(int argc, char** argv) {
     #endif
 
     if (argc < 2) {
-        std::cerr << "用法: " << argv[0] << " <DICOM目录路径>" << std::endl;
+        std::cerr << "用法:\n"
+                  << "  TRT 推理模式（直接在 C++ 中调用 TensorRT）:\n"
+                  << "    " << argv[0] << " <DICOM目录> <trt_meta.json>\n"
+                  << "    步骤1: python dl_medical/export_trt.py\n"
+                  << "    步骤2: " << argv[0] << " \"E:\\CT\" checkpoints/vessel_seg/trt_meta.json\n\n"
+                  << "  加载 Python 预生成掩码模式：\n"
+                  << "    " << argv[0] << " <DICOM目录> <vessel_mask.raw>\n"
+                  << "    步骤1: python dl_medical/infer_vessel_seg.py --dicom_dir <DICOM目录>\n"
+                  << "    步骤2: " << argv[0] << " \"E:\\CT\" outputs/vessel_result/vessel_mask.raw\n";
         return 1;
     }
 
+    // 解析命令行参数
+    // argv[2] 以 .json 结尾 → TRT 推理模式；以 .raw 结尾 → 加载 Python 掩码
+    std::string dicomDir    = argv[1];
+    std::string trtMetaPath;   // TRT 推理模式：trt_meta.json
+    std::string dlRawPath;     // 加载模式：vessel_mask.raw
+    std::string dlMetaPath;    // 加载模式：vessel_mask_meta.json
+
+    if (argc >= 3) {
+        std::string a2 = argv[2];
+        // 检测扩展名：.json → TRT 模式
+        if (a2.size() > 5 && a2.compare(a2.size() - 5, 5, ".json") == 0)
+            trtMetaPath = a2;
+        else
+            dlRawPath = a2;
+    }
+    if (argc >= 4 && trtMetaPath.empty())
+        dlMetaPath = argv[3];
+
+    // 自动推导 meta 路径（raw 同目录，后缀替换）
+    if (!dlRawPath.empty() && dlMetaPath.empty()) {
+        dlMetaPath = dlRawPath;
+        auto pos = dlMetaPath.rfind(".raw");
+        if (pos != std::string::npos)
+            dlMetaPath.replace(pos, 4, "_meta.json");
+        else
+            dlMetaPath += "_meta.json";
+    }
+
     // 加载DICOM数据
-    SeriesData series = collectSeries(argv[1]);
+    SeriesData series = collectSeries(dicomDir.c_str());
     VolumeBuildResult volumeData = buildVolume_none(series);
     if (volumeData.buffer.empty()) {
         return 1;
     }
+
+    // 床板伪影去除（圆形FOV裁剪 + 最大连通域 + 孔洞填充）
+    std::cout << "\n预处理: 自动去除床板伪影..." << std::endl;
+    removeBedArtifact(volumeData);
+
     // 设置体数据全局指针（供区域生长使用）
     g_volumePtr = &volumeData;
+
+    // ================================================================
+    // TRT 推理（在 OpenGL 初始化前完成，推理结果存入 g_segResult）
+    // 需在项目预处理器中定义 USE_TENSORRT，并设置 TRT_ROOT 环境变量
+    // ================================================================
+#ifdef USE_TENSORRT
+    if (!trtMetaPath.empty()) {
+        std::cout << "\n[TRT] 正在初始化 TensorRT 推理器...\n";
+        TRTVesselSegmentor trtSeg;
+        if (trtSeg.load(trtMetaPath)) {
+            uint32_t fD = 0, fH = 0, fW = 0;
+            std::cout << "[TRT] 重新读取 DICOM HU 浮点数据（精确 HU 值）...\n";
+            auto floatVol = buildVolumeFloat(
+                series, fD, fH, fW,
+                trtSeg.meta().huMin,
+                trtSeg.meta().huMax
+            );
+            if (!floatVol.empty()) {
+                auto t0 = std::chrono::steady_clock::now();
+                g_segResult = trtSeg.run(floatVol.data(), fD, fH, fW);
+                double sec  = std::chrono::duration<double>(
+                                  std::chrono::steady_clock::now() - t0).count();
+                std::cout << "[TRT] 推理完成  耗时=" << sec << "s"
+                          << "  血管体素=" << g_segResult.voxelCount << "\n";
+            } else {
+                std::cerr << "[TRT] 警告: HU 数据加载失败\n";
+            }
+        }
+    }
+#endif
 
     // 初始化GLFW
     if (!glfwInit()) {
@@ -944,6 +1106,30 @@ int main(int argc, char** argv) {
 
     // 创建3D纹理
     GLuint volumeTexture = create3DTextureFromVolume(volumeData);
+
+    // --- 上传分割掩码 GPU 纹理：TRT 推理结果 OR Python .raw 文件 ---
+    if (!g_segResult.mask.empty()) {
+        // 来源：TRT 推理（g_segResult 已在 OpenGL 初始化前写好）
+        g_segMaskTexture = createOrUpdateSegMaskTexture(g_segResult, g_segMaskTexture);
+        renderState.enableSegmentation = true;
+        renderState.segColor           = glm::vec3(1.0f, 0.15f, 0.1f); // 血管红色
+        renderState.segOpacity         = 0.85f;
+        renderState.segBorderWidth     = 0.002f;
+        std::cout << "[TRT] 血管掩码已上传 GPU，F1 切换显示\n";
+    } else if (!dlRawPath.empty()) {
+        // 来源：Python infer_vessel_seg.py / infer_vessel_trt.py 生成的 .raw
+        std::cout << "[DLMask] 正在加载深度学习分割掩码...\n";
+        RegionGrowingResult dlMask = loadDLVesselMask(dlRawPath, dlMetaPath);
+        if (!dlMask.mask.empty()) {
+            g_segResult      = std::move(dlMask);
+            g_segMaskTexture = createOrUpdateSegMaskTexture(g_segResult, g_segMaskTexture);
+            renderState.enableSegmentation = true;
+            renderState.segColor           = glm::vec3(1.0f, 0.15f, 0.1f);
+            renderState.segOpacity         = 0.85f;
+            renderState.segBorderWidth     = 0.002f;
+            std::cout << "[DLMask] 血管分割掩码已就绪，F1 切换显示\n";
+        }
+    }
 
     // 创建传递函数
     TransferFunction transferFunction;

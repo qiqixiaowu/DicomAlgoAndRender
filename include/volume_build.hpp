@@ -31,3 +31,17 @@ enum class InterpolationMethod {
 };
 
 VolumeBuildResult buildVolume_none(const SeriesData& series);
+
+/**
+ * 床板伪影去除 (in-place)
+ *
+ * 对 8-bit 体数据逐轴向切片：
+ *   1. 圆形 FOV 裁剪（去除重建域外的角落噪声）
+ *   2. 阈值分割 + 最大连通域提取（保留患者身体，排除床板）
+ *   3. 孔洞填充（保留肺、空腔等低密度区域不被误删）
+ *   4. 非身体区域体素置为 0（与空气等价）
+ *
+ * @param volume     要处理的体数据（直接修改 buffer）
+ * @param bodyThresh 8-bit 阈值（默认 10），大于此值视为"身体候选"
+ */
+void removeBedArtifact(VolumeBuildResult& volume, uint8_t bodyThresh = 10);

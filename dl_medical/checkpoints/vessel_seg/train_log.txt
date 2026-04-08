@@ -1,0 +1,59 @@
+
+============================================================
+训练开始: 2026-04-01 10:36:12
+数据路径: E:\traindata
+Patch: (64, 128, 128)
+Epochs: 100, BS: 2, LR: 0.0001
+============================================================
+
+============================================================
+训练开始: 2026-04-01 10:41:16
+数据路径: E:\traindata
+Patch: (64, 128, 128)
+Epochs: 100, BS: 2, LR: 0.0001
+============================================================
+
+============================================================
+训练开始: 2026-04-01 11:05:34
+数据路径: E:\traindata
+Patch: (64, 128, 128)
+Epochs: 100, BS: 2, LR: 0.0001
+============================================================
+
+============================================================
+训练开始: 2026-04-01 11:35:22
+数据路径: E:\traindata
+Patch: (64, 128, 128)
+Epochs: 100, BS: 2, LR: 0.0001
+============================================================
+epoch=001 train_loss=0.4467 train_dice=0.8508 val_loss=0.3828 val_dice=0.8565 lr=1.00e-04 time=296.6s
+epoch=002 train_loss=0.3469 train_dice=0.8948 val_loss=0.3165 val_dice=0.8481 lr=9.99e-05 time=297.7s
+epoch=003 train_loss=0.2689 train_dice=0.9140 val_loss=0.2537 val_dice=0.8588 lr=9.98e-05 time=293.9s
+epoch=004 train_loss=0.2071 train_dice=0.9193 val_loss=0.1870 val_dice=0.8672 lr=9.96e-05 time=293.0s
+epoch=005 train_loss=0.1637 train_dice=0.9238 val_loss=0.1409 val_dice=0.8866 lr=9.94e-05 time=311.3s
+epoch=006 train_loss=0.1393 train_dice=0.9279 val_loss=0.1259 val_dice=0.8849 lr=9.91e-05 time=1997.2s
+
+============================================================
+训练开始: 2026-04-01 12:37:05
+数据路径: E:\traindata
+Patch: (64, 128, 128)
+Epochs: 100, BS: 2, LR: 0.0001
+============================================================
+epoch=001 train_loss=0.4865 train_dice=0.8237 val_loss=0.4156 val_dice=0.8484 lr=1.00e-04 time=361.9s
+epoch=002 train_loss=0.3759 train_dice=0.8865 val_loss=0.3396 val_dice=0.8256 lr=9.99e-05 time=307.0s
+epoch=003 train_loss=0.2926 train_dice=0.8998 val_loss=0.2563 val_dice=0.8641 lr=9.98e-05 time=302.2s
+epoch=004 train_loss=0.2200 train_dice=0.9190 val_loss=0.1883 val_dice=0.8771 lr=9.96e-05 time=311.8s
+epoch=005 train_loss=0.1855 train_dice=0.9106 val_loss=0.1609 val_dice=0.8829 lr=9.94e-05 time=326.5s
+epoch=006 train_loss=0.1463 train_dice=0.9251 val_loss=0.1340 val_dice=0.8866 lr=9.91e-05 time=307.4s
+epoch=007 train_loss=0.1226 train_dice=0.9298 val_loss=0.1311 val_dice=0.8748 lr=9.88e-05 time=1789.5s
+epoch=008 train_loss=0.1116 train_dice=0.9250 val_loss=0.1028 val_dice=0.8826 lr=9.84e-05 time=324.4s
+epoch=009 train_loss=0.1067 train_dice=0.9345 val_loss=0.1127 val_dice=0.8754 lr=9.80e-05 time=302.8s
+epoch=010 train_loss=0.0995 train_dice=0.9382 val_loss=0.0896 val_dice=0.9021 lr=9.76e-05 time=360.2s
+epoch=011 train_loss=0.0931 train_dice=0.9395 val_loss=0.0777 val_dice=0.9125 lr=9.71e-05 time=398.9s
+epoch=012 train_loss=0.0905 train_dice=0.9384 val_loss=0.1013 val_dice=0.8845 lr=9.65e-05 time=319.6s
+epoch=013 train_loss=0.0966 train_dice=0.9294 val_loss=0.1014 val_dice=0.8696 lr=9.59e-05 time=323.2s
+epoch=014 train_loss=0.0848 train_dice=0.9407 val_loss=0.0897 val_dice=0.8961 lr=9.53e-05 time=327.2s
+epoch=015 train_loss=0.0908 train_dice=0.9415 val_loss=0.0886 val_dice=0.9124 lr=9.46e-05 time=340.8s
+epoch=016 train_loss=0.0831 train_dice=0.9430 val_loss=0.1081 val_dice=0.8672 lr=9.39e-05 time=380.6s
+epoch=017 train_loss=0.0870 train_dice=0.9393 val_loss=0.0786 val_dice=0.9082 lr=9.31e-05 time=320.0s
+epoch=018 train_loss=0.0816 train_dice=0.9492 val_loss=0.0808 val_dice=0.9043 lr=9.23e-05 time=301.4s

@@ -1,0 +1,11 @@
+{
+  "width": 512,
+  "height": 512,
+  "depth": 376,
+  "voxel_count": 2527129,
+  "total_voxels": 98566144,
+  "vessel_ratio": 2.564,
+  "dtype": "uint8",
+  "layout": "D_H_W (depth-height-width, C order)",
+  "values": "0=background, 255=vessel"
+}

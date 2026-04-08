@@ -1,0 +1,25 @@
+torch>=2.0.0
+torchvision>=0.15.0
+numpy>=1.24.0
+scipy>=1.10.0
+scikit-image>=0.20.0
+matplotlib>=3.7.0
+nibabel>=5.1.0
+SimpleITK>=2.2.0
+pydicom>=2.4.0
+tensorboard>=2.13.0
+tqdm>=4.65.0
+PyYAML>=6.0
+pillow>=9.5.0
+
+# ---- TensorRT 部署推理（可选）----
+# TensorRT 引擎构建与推理（需要 CUDA 12.x + 支持 CUDA 的 GPU）
+# pip install tensorrt
+tensorrt>=8.6.0
+
+# ONNX 导出与验证
+onnx>=1.14.0
+
+# ONNX Runtime GPU 推理（TensorRT 不可用时的回退）
+# pip install onnxruntime-gpu
+onnxruntime-gpu>=1.16.0
