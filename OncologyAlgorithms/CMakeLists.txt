@@ -9,6 +9,42 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # ─────────────────────────────────────────────
+#  可选：ONNX Runtime 支持（SAM2 推理）
+# ─────────────────────────────────────────────
+option(USE_ONNXRUNTIME "Enable ONNX Runtime for SAM2 segmentation" OFF)
+
+if(USE_ONNXRUNTIME)
+    # 查找 ONNX Runtime
+    # 设置 ORT_ROOT 指向 ONNX Runtime 安装目录
+    # 例: cmake -DUSE_ONNXRUNTIME=ON -DORT_ROOT="C:/onnxruntime-win-x64-gpu-1.16.0"
+    if(NOT ORT_ROOT)
+        set(ORT_ROOT "$ENV{ORT_ROOT}" CACHE PATH "ONNX Runtime root directory")
+    endif()
+
+    if(ORT_ROOT)
+        set(ORT_INCLUDE_DIR "${ORT_ROOT}/include")
+        if(WIN32)
+            set(ORT_LIB_DIR "${ORT_ROOT}/lib")
+            find_library(ORT_LIB onnxruntime HINTS "${ORT_LIB_DIR}")
+        else()
+            find_library(ORT_LIB onnxruntime HINTS "${ORT_ROOT}/lib")
+        endif()
+    else()
+        find_path(ORT_INCLUDE_DIR onnxruntime_cxx_api.h
+            HINTS /usr/local/include/onnxruntime)
+        find_library(ORT_LIB onnxruntime)
+    endif()
+
+    if(ORT_LIB AND ORT_INCLUDE_DIR)
+        message(STATUS "ONNX Runtime found: ${ORT_LIB}")
+        message(STATUS "ONNX Runtime include: ${ORT_INCLUDE_DIR}")
+    else()
+        message(WARNING "ONNX Runtime not found. SAM2 will be disabled. Set ORT_ROOT.")
+        set(USE_ONNXRUNTIME OFF)
+    endif()
+endif()
+
+# ─────────────────────────────────────────────
 #  可选：CUDA 支持（深度学习 nnUNet 推理）
 # ─────────────────────────────────────────────
 option(USE_CUDA "Enable CUDA/cuDNN GPU inference for DL lung nodule module" OFF)
@@ -45,6 +81,12 @@ endif()
 
 add_library(OncologyAlgorithms STATIC ${ONC_SRCS})
 target_include_directories(OncologyAlgorithms PUBLIC ${INC_DIR})
+
+if(USE_ONNXRUNTIME)
+    target_compile_definitions(OncologyAlgorithms PUBLIC USE_ONNXRUNTIME)
+    target_include_directories(OncologyAlgorithms PUBLIC ${ORT_INCLUDE_DIR})
+    target_link_libraries(OncologyAlgorithms PUBLIC ${ORT_LIB})
+endif()
 
 if(USE_CUDA)
     target_compile_definitions(OncologyAlgorithms PUBLIC USE_CUDA)

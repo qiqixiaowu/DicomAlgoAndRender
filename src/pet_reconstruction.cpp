@@ -755,3 +755,153 @@ bool PETReconstructor::savePGM(const std::string& filename,
     file.close();
     return true;
 }
+
+// ============================================================================
+// PETReconResult3D
+// ============================================================================
+
+std::vector<float> PETReconResult3D::getSlice(int z) const {
+    std::vector<float> slice(sizeXY * sizeXY);
+    std::copy(volume.begin() + z * sizeXY * sizeXY,
+              volume.begin() + (z + 1) * sizeXY * sizeXY,
+              slice.begin());
+    return slice;
+}
+
+void PETReconResult3D::normalize() {
+    if (volume.empty()) return;
+    float minVal = *std::min_element(volume.begin(), volume.end());
+    float maxVal = *std::max_element(volume.begin(), volume.end());
+    float range = maxVal - minVal;
+    if (range < 1e-10f) range = 1.0f;
+    for (auto& v : volume) v = (v - minVal) / range;
+}
+
+// ============================================================================
+// 3D 体模生成
+// ============================================================================
+
+std::vector<float> PETReconstructor::generate3DHotColdPhantom(int size, int numSlices) {
+    // 3D 球形热点/冷点体模: 每个切片计算球形截面 (XY 圆) 的半径
+    struct Sphere3D { float cx, cy, cz, radius, activity; };
+    const std::vector<Sphere3D> spheres = {
+        {  0.28f,  0.0f,  0.0f,  0.22f, 8.0f },  // 大球, 高活度
+        { -0.28f,  0.0f,  0.1f,  0.17f, 6.0f },  // 中球
+        {  0.0f,   0.3f, -0.1f,  0.14f, 4.0f },  // 小球
+        {  0.0f,  -0.3f,  0.2f,  0.10f, 4.0f },  // 最小热球
+        {  0.35f,  0.3f,  0.05f, 0.17f, 0.0f },  // 冷区 1
+        { -0.35f, -0.3f, -0.15f, 0.14f, 0.0f },  // 冷区 2
+    };
+
+    std::vector<float> volume(numSlices * size * size, 0.0f);
+    float halfSize   = size / 2.0f;
+    float halfSlices = numSlices / 2.0f;
+    const float R = 0.85f;
+
+    for (int z = 0; z < numSlices; ++z) {
+        float pz = (z - halfSlices + 0.5f) / halfSlices; // [-1, 1]
+        int sliceOff = z * size * size;
+
+        // 背景椭球 (XY 扁椭圆, Z 轴较长)
+        for (int y = 0; y < size; ++y) {
+            for (int x = 0; x < size; ++x) {
+                float px = (x - halfSize + 0.5f) / halfSize;
+                float py = (y - halfSize + 0.5f) / halfSize;
+                float val = px*px / (R*R) + py*py / ((R*0.8f)*(R*0.8f)) + pz*pz;
+                if (val <= 1.0f)
+                    volume[sliceOff + y*size + x] = 1.0f;
+            }
+        }
+
+        // 球形热点: 在该 z 切片处的圆形截面
+        for (const auto& s : spheres) {
+            float dz = pz - s.cz;
+            if (std::abs(dz) >= s.radius) continue;
+            float r2d = std::sqrt(s.radius*s.radius - dz*dz);
+            for (int y = 0; y < size; ++y) {
+                for (int x = 0; x < size; ++x) {
+                    float px = (x - halfSize + 0.5f) / halfSize;
+                    float py = (y - halfSize + 0.5f) / halfSize;
+                    float dist = std::sqrt((px - s.cx)*(px - s.cx) + (py - s.cy)*(py - s.cy));
+                    if (dist <= r2d)
+                        volume[sliceOff + y*size + x] = s.activity;
+                }
+            }
+        }
+    }
+    return volume;
+}
+
+std::vector<float> PETReconstructor::generate3DDerenzoPhantom(int size, int numSlices) {
+    // Derenzo 体模: 热点为圆柱体, 各轴向切片相同
+    auto slice2D = generateDerenzoPhantom(size);
+    std::vector<float> volume(numSlices * size * size);
+    for (int z = 0; z < numSlices; ++z)
+        std::copy(slice2D.begin(), slice2D.end(),
+                  volume.begin() + z * size * size);
+    return volume;
+}
+
+// ============================================================================
+// 3D 正向投影 (逐切片)
+// ============================================================================
+
+PETSinogram3D PETReconstructor::forwardProject3D(
+    const std::vector<float>& volume, int imageSize, int numSlices,
+    int numAngles, int numRadialBins)
+{
+    PETSinogram3D sino3D;
+    sino3D.numSlices = numSlices;
+    sino3D.numAngles = numAngles;
+    sino3D.slices.resize(numSlices);
+
+    for (int z = 0; z < numSlices; ++z) {
+        std::vector<float> slice(imageSize * imageSize);
+        std::copy(volume.begin() + z * imageSize * imageSize,
+                  volume.begin() + (z + 1) * imageSize * imageSize,
+                  slice.begin());
+        sino3D.slices[z] = forwardProject(slice, imageSize, numAngles, numRadialBins);
+    }
+    sino3D.numRadialBins = sino3D.slices[0].numRadialBins;
+    return sino3D;
+}
+
+// ============================================================================
+// 3D 重建 (逐切片)
+// ============================================================================
+
+PETReconResult3D PETReconstructor::reconstruct3D(
+    const PETSinogram3D& sinogram3D, int outputSize,
+    PETReconMethod method, int iterations, int numSubsets,
+    const PETCorrections& corrections)
+{
+    PETReconResult3D result3D;
+    result3D.sizeXY    = outputSize;
+    result3D.numSlices = sinogram3D.numSlices;
+    result3D.volume.resize(outputSize * outputSize * sinogram3D.numSlices, 0.0f);
+
+    float totalLogLik = 0.0f;
+    for (int z = 0; z < sinogram3D.numSlices; ++z) {
+        std::cout << "  重建切片 " << (z + 1) << "/" << sinogram3D.numSlices
+                  << "\r" << std::flush;
+        auto sliceResult = reconstruct(sinogram3D.slices[z], outputSize,
+            method, iterations, numSubsets, corrections);
+        sliceResult.normalize();
+        std::copy(sliceResult.image.begin(), sliceResult.image.end(),
+            result3D.volume.begin() + z * outputSize * outputSize);
+        totalLogLik += sliceResult.logLikelihood;
+    }
+    std::cout << "\n";
+    result3D.logLikelihood = totalLogLik;
+    result3D.iterationsRun = iterations;
+    return result3D;
+}
+
+// ============================================================================
+// 3D 泊松噪声
+// ============================================================================
+
+void PETReconstructor::addPoissonNoise3D(PETSinogram3D& sinogram3D, float scaleFactor) {
+    for (auto& slice : sinogram3D.slices)
+        addPoissonNoise(slice, scaleFactor);
+}

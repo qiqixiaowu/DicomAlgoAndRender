@@ -12,6 +12,7 @@
 #include "kmeans_segmentation.h"
 #include "gmm_segmentation.h"
 #include "random_walker_segmentation.h"
+#include "sam2_segment.h"
 #include <iostream>
 #include <cstring>
 #include <algorithm>
@@ -161,17 +162,33 @@ bool GeneralTumorSegmentation::segmentSAM2(
     SegmentResult&   result,
     ProgressCallback progress)
 {
-    // 此处需链接 ONNX Runtime / TRT SAM2 引擎
-    // 实现步骤：
-    //   1. 加载 m_cfg.sam2ModelPath
-    //   2. 将长轴线段转为 2D box prompt（在扫描层面）
-    //   3. 逐层 2D 推理，堆叠为 3D mask
-    //   4. 3D 连通域过滤
-    //
+#ifdef USE_ONNXRUNTIME
+    // 延迟初始化 SAM2
+    if (!m_sam2) {
+        SAM2Config cfg;
+        cfg.setModelDir(m_cfg.sam2ModelPath);
+        cfg.useCUDA = (QueryGPUMemGB() > 0);
+        m_sam2 = std::make_unique<SAM2Segmenter>();
+        if (!m_sam2->initialize(cfg)) {
+            std::cerr << "[GeneralTumorSeg] SAM2 init failed, falling back\n";
+            m_sam2.reset();
+            return segmentTraditional(data, info, ldStart, ldEnd, result, progress);
+        }
+    }
+
+    bool ok = m_sam2->segment(data, info, ldStart, ldEnd, m_cfg.drawDir,
+                              result, true, progress);
+    if (!ok) {
+        std::cerr << "[GeneralTumorSeg] SAM2 segment failed, falling back\n";
+        return segmentTraditional(data, info, ldStart, ldEnd, result, progress);
+    }
+    return true;
+#else
     std::cout << "[GeneralTumorSeg] SAM2 path: "
               << "model = " << m_cfg.sam2ModelPath << "\n"
-              << "  Falling back to traditional (ONNX/TRT runtime not linked)\n";
+              << "  Falling back to traditional (ONNX Runtime not linked)\n";
     return segmentTraditional(data, info, ldStart, ldEnd, result, progress);
+#endif
 }
 
 // ────────────────────────────────────────

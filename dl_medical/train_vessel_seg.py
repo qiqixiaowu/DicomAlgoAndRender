@@ -223,7 +223,7 @@ def main():
 
     # AMP Scaler
     use_amp = args.amp and device.type == "cuda"
-    scaler = torch.amp.GradScaler("cuda") if use_amp else None
+    scaler = torch.cuda.amp.GradScaler() if use_amp else None
     if use_amp:
         print("已启用自动混合精度 (AMP) — 节省显存约 40%)")
 

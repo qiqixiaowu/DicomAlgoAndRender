@@ -31,6 +31,10 @@ enum class InterpolationMethod {
 };
 
 VolumeBuildResult buildVolume_none(const SeriesData& series);
+VolumeBuildResult buildVolume_none(const SeriesData& series,
+                                    bool enableResampling,
+                                    float targetZSpacing,
+                                    InterpolationMethod method);
 
 /**
  * 床板伪影去除 (in-place)

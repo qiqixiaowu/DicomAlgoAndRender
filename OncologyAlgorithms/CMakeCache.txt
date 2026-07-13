@@ -194,6 +194,9 @@ OncologyAlgorithms_SOURCE_DIR:STATIC=F:/渲染/OpenglRender/OncologyAlgorithms
 //Enable CUDA/cuDNN GPU inference for DL lung nodule module
 USE_CUDA:BOOL=OFF
 
+//Enable ONNX Runtime for SAM2 segmentation
+USE_ONNXRUNTIME:BOOL=OFF
+
 
 ########################
 # INTERNAL cache entries

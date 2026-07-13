@@ -1,0 +1,4 @@
+F:/渲染/OpenglRender/MedicalSegmentation/build/CMakeFiles/medseg_demo.dir
+F:/渲染/OpenglRender/MedicalSegmentation/build/CMakeFiles/INSTALL.dir
+F:/渲染/OpenglRender/MedicalSegmentation/build/CMakeFiles/ALL_BUILD.dir
+F:/渲染/OpenglRender/MedicalSegmentation/build/CMakeFiles/ZERO_CHECK.dir

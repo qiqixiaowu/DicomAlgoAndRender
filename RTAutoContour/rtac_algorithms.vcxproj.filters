@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="F:\渲染\OpenglRender\RTAutoContour\src\rtac_lib.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="F:\渲染\OpenglRender\RTAutoContour\include\bed_board_detection.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\渲染\OpenglRender\RTAutoContour\include\connected_component.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\渲染\OpenglRender\RTAutoContour\include\contour_mask.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\渲染\OpenglRender\RTAutoContour\include\ct_reset_match.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\渲染\OpenglRender\RTAutoContour\include\fiducial_detection.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\渲染\OpenglRender\RTAutoContour\include\interpolation.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\渲染\OpenglRender\RTAutoContour\include\live_wire.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\渲染\OpenglRender\RTAutoContour\include\marching_squares_cuda.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\渲染\OpenglRender\RTAutoContour\include\morphology.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="F:\渲染\OpenglRender\RTAutoContour\include\rt_types.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="src\marching_squares_cuda.cu">
+      <Filter>CUDA Files</Filter>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="F:\渲染\OpenglRender\RTAutoContour\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CUDA Files">
+      <UniqueIdentifier>{6B4EF611-DABC-3F85-9320-4A61B2A5706F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{2C934C04-83FD-3431-8F14-B6A91EBDBD3E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{C667573A-A803-38E5-A9B0-BB4265FC88F9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

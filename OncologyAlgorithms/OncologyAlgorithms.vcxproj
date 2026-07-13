@@ -296,7 +296,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="F:\渲染\OpenglRender\OncologyAlgorithms\src\lung_nodule_segment_dl.cpp" />
     <ClCompile Include="F:\渲染\OpenglRender\OncologyAlgorithms\src\lung_nodule_segment_traditional.cpp" />
     <ClCompile Include="F:\渲染\OpenglRender\OncologyAlgorithms\src\pet_lesion_segment.cpp" />
+    <ClCompile Include="F:\渲染\OpenglRender\OncologyAlgorithms\src\pet_suv_unity_filter.cpp" />
     <ClCompile Include="F:\渲染\OpenglRender\OncologyAlgorithms\src\random_walker_segmentation.cpp" />
+    <ClCompile Include="F:\渲染\OpenglRender\OncologyAlgorithms\src\sam2_segment.cpp" />
     <ClCompile Include="F:\渲染\OpenglRender\OncologyAlgorithms\src\tumor_diameter_calculator.cpp" />
   </ItemGroup>
   <ItemGroup>

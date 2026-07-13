@@ -22,7 +22,13 @@
     <ClCompile Include="F:\渲染\OpenglRender\OncologyAlgorithms\src\pet_lesion_segment.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="F:\渲染\OpenglRender\OncologyAlgorithms\src\pet_suv_unity_filter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="F:\渲染\OpenglRender\OncologyAlgorithms\src\random_walker_segmentation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="F:\渲染\OpenglRender\OncologyAlgorithms\src\sam2_segment.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="F:\渲染\OpenglRender\OncologyAlgorithms\src\tumor_diameter_calculator.cpp">

@@ -12,6 +12,10 @@
     <ClCompile Include="src\main_optimized_example.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\trt_vessel_seg.cpp" />
+    <ClCompile Include="main_reg.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\volume_frag_optimized.frag">
@@ -26,5 +30,10 @@
     <None Include="shader\mpr_vert.vert">
       <Filter>shader</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ct_pet_registration.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

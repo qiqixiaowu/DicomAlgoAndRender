@@ -286,7 +286,7 @@ printf("体积: %.0f mm³, HU均值: %.1f\n", stats.volume_mm3, stats.mean);
 收敛：maxIter 次迭代后，提取前景簇 → 连通域过滤保留种子点所在区域
 ```
 
-#### 5.2.2 GMM（2-分量，EM 算法）
+#### 5.2.2 GMM（2-分量，EM 算法） Gaussian_Mixture_Model
 
 ```
 建模：P(HU | 前景) = N(μ₁, σ₁²);  P(HU | 背景) = N(μ₀, σ₀²)

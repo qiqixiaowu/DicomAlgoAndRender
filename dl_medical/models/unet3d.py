@@ -102,7 +102,7 @@ class UNet3D(nn.Module):
             skip = skips[-(i + 1)]
             # 用 interpolate 对齐尺寸，避免 ONNX trace 时的 shape 比较 warning
             if x.shape[2:] != skip.shape[2:]:
-                x = nn.functional.interpolate(
+                x = nn.functional.interpolate( 
                     x, size=skip.shape[2:], mode="trilinear", align_corners=False
                 )
             x = torch.cat([skip, x], dim=1)

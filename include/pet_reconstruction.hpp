@@ -75,6 +75,33 @@ struct PETHotspot {
     float activity;     // 放射性活度 (相对值)
 };
 
+// PET 3D 体模热点 (球形)
+struct PETHotspot3D {
+    float cx, cy, cz;   // 3D 中心位置 (归一化 [-1,1])
+    float radius;       // 球半径 (归一化)
+    float activity;     // 放射性活度
+};
+
+// 3D 正弦图 (逐切片, 每切片一个 PETSinogram)
+struct PETSinogram3D {
+    std::vector<PETSinogram> slices;
+    int numSlices     = 0;
+    int numAngles     = 0;
+    int numRadialBins = 0;
+};
+
+// 3D 重建结果
+struct PETReconResult3D {
+    std::vector<float> volume;  // [numSlices * sizeXY * sizeXY]
+    int sizeXY    = 0;
+    int numSlices = 0;
+    float logLikelihood = 0.0f;
+    int iterationsRun   = 0;
+
+    std::vector<float> getSlice(int z) const;
+    void normalize();
+};
+
 // PET 校正参数
 struct PETCorrections {
     bool attenuationCorrection = false;     // 衰减校正
@@ -161,6 +188,25 @@ public:
     // 归一化校正因子 (探测器效率)
     static std::vector<float> computeNormalization(
         int numAngles, int numRadialBins);
+
+    // ---- 3D 体模生成 ----
+    static std::vector<float> generate3DHotColdPhantom(int size, int numSlices);
+    static std::vector<float> generate3DDerenzoPhantom(int size, int numSlices);
+
+    // ---- 3D 正向投影 (逐切片) ----
+    static PETSinogram3D forwardProject3D(
+        const std::vector<float>& volume, int imageSize, int numSlices,
+        int numAngles = 180, int numRadialBins = -1);
+
+    // ---- 3D 重建 (逐切片) ----
+    static PETReconResult3D reconstruct3D(
+        const PETSinogram3D& sinogram3D, int outputSize,
+        PETReconMethod method = PETReconMethod::OSEM,
+        int iterations = 10, int numSubsets = 12,
+        const PETCorrections& corrections = {});
+
+    // ---- 3D 泊松噪声 ----
+    static void addPoissonNoise3D(PETSinogram3D& sinogram3D, float scaleFactor = 1.0f);
 
     // ---- 工具 ----
 

@@ -19,7 +19,9 @@
  */
 
 #include "oncology_types.h"
+#include "sam2_segment.h"
 #include <string>
+#include <memory>
 
 namespace Onc {
 
@@ -119,6 +121,7 @@ public:
 private:
     GeneralSegmentConfig m_cfg;
     SegmentMethod        m_lastMethod = SegmentMethod::Auto;
+    std::unique_ptr<SAM2Segmenter> m_sam2;
 
     // 传统算法路径
     bool segmentTraditional(const short*     data,

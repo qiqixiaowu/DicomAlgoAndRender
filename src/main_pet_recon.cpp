@@ -41,11 +41,13 @@ static float g_windowCenter   = 0.5f;
 static float g_windowWidth    = 1.0f;
 static bool g_needRecon       = true;
 static int g_phantomType      = 0; // 0=热球, 1=Derenzo
+static int g_numSlices        = 16;
+static int g_currentSlice     = 8;
 
-static std::vector<float> g_phantom;
-static PETSinogram g_sinogram;
-static PETSinogram g_sinogramClean;
-static PETReconResult g_recon;
+static std::vector<float> g_phantom;        // 3D 体积 [numSlices * size * size]
+static PETSinogram3D g_sinogram;
+static PETSinogram3D g_sinogramClean;
+static PETReconResult3D g_recon;
 
 // OpenGL
 static GLuint g_phantomTex  = 0;
@@ -155,49 +157,65 @@ static void drawTex(GLuint tex, int x, int y, int w, int h) {
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
+// ---- 辅助: 提取 3D 体积中的某个切片 ----
+static std::vector<float> getVolumeSlice(const std::vector<float>& vol, int size, int z) {
+    std::vector<float> s(size * size);
+    std::copy(vol.begin() + z * size * size,
+              vol.begin() + (z + 1) * size * size, s.begin());
+    return s;
+}
+
+// ---- 辅助: 将当前切片上传到三个显示纹理 ----
+static void updateSliceTextures() {
+    if (g_phantom.empty() || g_sinogram.slices.empty()) return;
+    updateTex(g_phantomTex,
+        norm01(getVolumeSlice(g_phantom, g_phantomSize, g_currentSlice)),
+        g_phantomSize, g_phantomSize);
+    const auto& sSlice = g_sinogram.slices[g_currentSlice];
+    updateTex(g_sinogramTex,
+        norm01(sSlice.data), sSlice.numRadialBins, sSlice.numAngles);
+    if (!g_recon.volume.empty())
+        updateTex(g_reconTex,
+            g_recon.getSlice(g_currentSlice), g_reconSize, g_reconSize);
+}
+
 // ---- 生成体模 + 正弦图 ----
 static void generateData() {
-    //std::cout << "\n生成体模..." << std::endl;
-    if (g_phantomType == 0) {
-        g_phantom = PETReconstructor::generateHotColdPhantom(g_phantomSize);
-        //std::cout << "体模: NEMA IEC 热球冷球" << std::endl;
-    } else {
-        g_phantom = PETReconstructor::generateDerenzoPhantom(g_phantomSize);
-        //std::cout << "体模: Derenzo 分辨率" << std::endl;
-    }
+    if (g_phantomType == 0)
+        g_phantom = PETReconstructor::generate3DHotColdPhantom(g_phantomSize, g_numSlices);
+    else
+        g_phantom = PETReconstructor::generate3DDerenzoPhantom(g_phantomSize, g_numSlices);
 
-    //std::cout << "正向投影 (" << g_numAngles << " angles)..." << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
-    g_sinogram = PETReconstructor::forwardProject(
-        g_phantom, g_phantomSize, g_numAngles);
+    g_sinogram = PETReconstructor::forwardProject3D(
+        g_phantom, g_phantomSize, g_numSlices, g_numAngles);
     auto end = std::chrono::high_resolution_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    //std::cout << "正向投影完成: " << ms << " ms" << std::endl;
+    std::cout << "正弦图生成完成: " << ms << " ms  ("
+              << g_numSlices << " 切片)" << std::endl;
     g_sinogramClean = g_sinogram;
 }
 
 // ---- 重建 ----
 static void doRecon() {
-   // std::cout << "\n===== PET 重建 =====" << std::endl;
-    //std::cout << "算法: ";
     switch (g_method) {
-    case PETReconMethod::MLEM: std::cout << "MLEM"; break;
-    case PETReconMethod::OSEM: std::cout << "OSEM (" << g_numSubsets << " subsets)"; break;
+    case PETReconMethod::MLEM:    std::cout << "MLEM"; break;
+    case PETReconMethod::OSEM:    std::cout << "OSEM (" << g_numSubsets << " subsets)"; break;
     case PETReconMethod::FBP_PET: std::cout << "FBP"; break;
     }
-    //std::cout << "  迭代: " << g_iterations << std::endl;
+    std::cout << "  迭代: " << g_iterations
+              << "  切片: " << g_numSlices << std::endl;
 
     auto start = std::chrono::high_resolution_clock::now();
-    g_recon = PETReconstructor::reconstruct(
+    g_recon = PETReconstructor::reconstruct3D(
         g_sinogram, g_reconSize, g_method, g_iterations, g_numSubsets);
-    g_recon.normalize();
     auto end = std::chrono::high_resolution_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    std::cout << "重建完成: " << ms << " ms" << std::endl;
+    std::cout << "3D 重建完成: " << ms << " ms" << std::endl;
 
-    updateTex(g_reconTex, g_recon.image, g_reconSize, g_reconSize);
+    updateTex(g_reconTex, g_recon.getSlice(g_currentSlice), g_reconSize, g_reconSize);
     PETReconstructor::savePGM("pet_recon_result.pgm",
-        g_recon.image, g_reconSize, g_reconSize);
+        g_recon.getSlice(g_numSlices / 2), g_reconSize, g_reconSize);
 }
 
 // ---- 按键 ----
@@ -211,25 +229,20 @@ static void keyCallback(GLFWwindow* w, int key, int, int action, int) {
     case GLFW_KEY_1: case GLFW_KEY_2:
         g_phantomType = key - GLFW_KEY_1;
         generateData();
-        updateTex(g_phantomTex, norm01(g_phantom), g_phantomSize, g_phantomSize);
-        updateTex(g_sinogramTex, norm01(g_sinogram.data),
-            g_sinogram.numRadialBins, g_sinogram.numAngles);
+        g_recon = {};  // 清除旧重建结果
+        updateSliceTextures();
         g_needRecon = true;
         break;
     case GLFW_KEY_N:
         g_sinogram = g_sinogramClean;
-        PETReconstructor::addPoissonNoise(g_sinogram, 100.0f);
-        updateTex(g_sinogramTex, norm01(g_sinogram.data),
-            g_sinogram.numRadialBins, g_sinogram.numAngles);
+        PETReconstructor::addPoissonNoise3D(g_sinogram, 100.0f);
+        updateSliceTextures();
         g_needRecon = true;
-        //std::cout << "已添加泊松噪声" << std::endl;
         break;
     case GLFW_KEY_R:
         g_sinogram = g_sinogramClean;
-        updateTex(g_sinogramTex, norm01(g_sinogram.data),
-            g_sinogram.numRadialBins, g_sinogram.numAngles);
+        updateSliceTextures();
         g_needRecon = true;
-        //std::cout << "已重置" << std::endl;
         break;
     case GLFW_KEY_C: g_colorMode = (g_colorMode + 1) % 3; break;
     case GLFW_KEY_EQUAL: case GLFW_KEY_KP_ADD:
@@ -246,6 +259,12 @@ static void keyCallback(GLFWwindow* w, int key, int, int action, int) {
         g_windowCenter = std::min(g_windowCenter + 0.02f, 2.0f); break;
     case GLFW_KEY_DOWN:
         g_windowCenter = std::max(g_windowCenter - 0.02f, -1.0f); break;
+    case GLFW_KEY_PAGE_UP:
+        g_currentSlice = std::min(g_currentSlice + 1, g_numSlices - 1);
+        updateSliceTextures(); break;
+    case GLFW_KEY_PAGE_DOWN:
+        g_currentSlice = std::max(g_currentSlice - 1, 0);
+        updateSliceTextures(); break;
     }
 }
 
@@ -273,10 +292,14 @@ int main() {
 
     // 生成体模和正弦图
     generateData();
-    PETReconstructor::savePGM("pet_phantom.pgm", g_phantom,
+    PETReconstructor::savePGM("pet_phantom.pgm",
+        getVolumeSlice(g_phantom, g_phantomSize, g_numSlices / 2),
         g_phantomSize, g_phantomSize);
-    PETReconstructor::savePGM("pet_sinogram.pgm", g_sinogram.data,
-        g_sinogram.numRadialBins, g_sinogram.numAngles);
+    {
+        const auto& midSlice = g_sinogram.slices[g_numSlices / 2];
+        PETReconstructor::savePGM("pet_sinogram.pgm", midSlice.data,
+            midSlice.numRadialBins, midSlice.numAngles);
+    }
 
     // OpenGL 初始化
     if (!glfwInit()) { std::cerr << "GLFW 失败" << std::endl; return -1; }
@@ -285,7 +308,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow* window = glfwCreateWindow(1200, 420,
-        "PET Reconstruction Demo", nullptr, nullptr);
+        "PET 3D Reconstruction Demo", nullptr, nullptr);
     if (!window) { glfwTerminate(); return -1; }
     glfwMakeContextCurrent(window);
     glfwSetKeyCallback(window, keyCallback);
@@ -295,9 +318,14 @@ int main() {
     g_shaderProg = createDisplayShader();
     initQuad();
 
-    g_phantomTex  = uploadTex(norm01(g_phantom), g_phantomSize, g_phantomSize);
-    g_sinogramTex = uploadTex(norm01(g_sinogram.data),
-        g_sinogram.numRadialBins, g_sinogram.numAngles);
+    g_phantomTex  = uploadTex(
+        norm01(getVolumeSlice(g_phantom, g_phantomSize, g_currentSlice)),
+        g_phantomSize, g_phantomSize);
+    {
+        const auto& sSlice = g_sinogram.slices[g_currentSlice];
+        g_sinogramTex = uploadTex(norm01(sSlice.data),
+            sSlice.numRadialBins, sSlice.numAngles);
+    }
     std::vector<float> blank(g_reconSize * g_reconSize, 0.0f);
     g_reconTex = uploadTex(blank, g_reconSize, g_reconSize);
 
@@ -307,6 +335,13 @@ int main() {
 
         int fbW, fbH; glfwGetFramebufferSize(window, &fbW, &fbH);
         int pw = fbW / 3;
+        {
+            std::string title = "PET 3D Recon  ["
+                + std::to_string(g_currentSlice + 1) + "/" + std::to_string(g_numSlices)
+                + "]  " + (g_method == PETReconMethod::MLEM ? "MLEM" :
+                           g_method == PETReconMethod::OSEM ? "OSEM" : "FBP");
+            glfwSetWindowTitle(window, title.c_str());
+        }
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 

@@ -322,6 +322,25 @@ static void demoGeneralTumorSegment() {
                                   newLdStart, newLdEnd, spreadRes,
                                   progressCB);
     std::cout << "  传播分割     结果体素数: " << (ok ? (int)spreadRes.size() : -1) << "\n";
+
+    // ── SAM2 演示（需 USE_ONNXRUNTIME + 模型文件）────
+    std::cout << "\n  >> SAM2 分割（深度学习）\n";
+    {
+        GeneralSegmentConfig sam2Cfg;
+        sam2Cfg.method   = SegmentMethod::SAM2;
+        sam2Cfg.modality = ImageModality::CT;
+        sam2Cfg.drawDir  = DrawDirection::Axial;
+        // 指定 SAM2 模型目录（4个 ONNX 文件所在目录）
+        sam2Cfg.sam2ModelPath = "./models";
+
+        GeneralTumorSegmentation samSeg(sam2Cfg);
+        SegmentResult samRes;
+        ok = samSeg.segment(ctData.data(), info, ldStart, ldEnd, samRes, progressCB);
+        std::cout << "  SAM2          分割体素数: " << (ok ? (int)samRes.size() : -1)
+                  << "  实际方法: " << (int)samSeg.lastUsedMethod() << "\n";
+        if (!ok)
+            std::cout << "  (SAM2 未配置模型，已回退至传统算法)\n";
+    }
 }
 
 // ───────────────────────────────────────────────────────
