@@ -1,0 +1,102 @@
+# ============================================================
+#  3D 医学图像配准训练配置
+#
+#  支持肺部/肝部非刚体配准
+#  使用 VoxelMorph3DDiff (微分同胚) 保证拓扑
+# ============================================================
+
+# --- 数据 ---
+data:
+  source: "synthetic"               # synthetic | nifti | paired_nifti
+  data_type: "lung"                 # lung | liver | generic (synthetic 模式)
+  # nifti 模式:
+  # data_dir: "/data/lung_ct"
+  # paired_nifti 模式:
+  # fixed_dir: "/data/lung_inhale"
+  # moving_dir: "/data/lung_exhale"
+
+  volume_size: [64, 64, 64]        # 体数据尺寸 (D, H, W)
+  n_samples: 200                    # 合成数据样本数 (训练)
+  n_val_samples: 40                 # 合成数据样本数 (验证)
+  deform_sigma: 8.0                 # 弹性变形平滑度
+  deform_alpha: 12.0                # 弹性变形幅度
+  normalize: "percentile"           # percentile | zscore | minmax
+  augment: true
+  num_workers: 4
+
+# --- 模型 ---
+model:
+  name: "VoxelMorph3DDiff"          # VoxelMorph3D | VoxelMorph3DDiff
+  enc_features: [16, 32, 64, 64]   # 编码器通道
+  dec_features: [64, 64, 32, 16]   # 解码器通道
+  # 微分同胚参数 (仅 VoxelMorph3DDiff)
+  vec_int_steps: 7                  # scaling-squaring 积分步数
+
+# --- 损失 ---
+loss:
+  sim_loss: "LNCC"                  # NCC | MSE | LNCC
+  sim_weight: 1.0
+  smooth_loss: "bending"            # gradient | bending
+  smooth_weight: 0.5
+  jac_weight: 0.1                   # Jacobian 折叠惩罚
+  lncc_windows: [5, 9]              # LNCC 多窗口尺寸
+  ncc_window: 9                     # NCC 窗口尺寸
+
+# --- 训练 ---
+training:
+  batch_size: 2                     # 3D 数据显存大, 小 batch
+  epochs: 200
+  learning_rate: 0.0001
+  weight_decay: 0.00001
+  optimizer: "Adam"                 # Adam | AdamW | SGD
+  scheduler: "CosineAnnealingLR"    # CosineAnnealingLR | StepLR | ReduceLROnPlateau
+  scheduler_params:
+    T_max: 200
+    eta_min: 1.0e-6
+  warmup_epochs: 5                  # 学习率预热
+  gradient_clip: 1.0                # 梯度裁剪
+  amp: true                         # 混合精度训练 (节省显存)
+  gradient_checkpointing: false     # 梯度检查点 (更省显存但更慢)
+
+  # 多分辨率金字塔
+  pyramid:
+    enabled: false                  # 是否启用多分辨率训练
+    levels: [32, 64, 128]           # 从低分辨率开始
+    epochs_per_level: [50, 100, 50]
+
+# --- 日志 ---
+logging:
+  save_dir: "checkpoints/reg3d"
+  log_interval: 10                  # 每 N 步打印一次
+  val_interval: 5                   # 每 N epoch 验证一次
+  save_best: true
+  save_last: true
+  tensorboard: true
+  wandb: false
+  wandb_project: "dl_medical_reg3d"
+
+# --- 肺部预设 ---
+lung_preset:
+  data:
+    data_type: "lung"
+    volume_size: [64, 64, 64]
+    deform_sigma: 10.0              # 肺部呼吸运动较大
+    deform_alpha: 15.0
+  loss:
+    sim_loss: "LNCC"                # 肺部含多种结构, 用多窗口 LNCC
+    smooth_loss: "bending"
+    smooth_weight: 0.5
+    jac_weight: 0.1
+
+# --- 肝部预设 ---
+liver_preset:
+  data:
+    data_type: "liver"
+    volume_size: [64, 64, 64]
+    deform_sigma: 6.0               # 肝部形变相对平滑
+    deform_alpha: 10.0
+  loss:
+    sim_loss: "LNCC"
+    smooth_loss: "bending"          # 弯曲能量更适合肝部大形变
+    smooth_weight: 1.0              # 肝部需要更强平滑
+    jac_weight: 0.2                 # 肝部对折叠更敏感

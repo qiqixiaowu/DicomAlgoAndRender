@@ -37,6 +37,8 @@
 #include <iomanip>
 #include <chrono>
 #include <atomic>
+#include <array>
+#include <cmath>
 
 #include "registration.hpp"
 #include "dicom_utils.hpp"
@@ -180,6 +182,79 @@ static void refreshAllSlices(int z) {
 //  DICOM 加载：从文件夹读取序列 → 8-bit 体数据 → Image3D
 // ============================================================
 
+struct VolumeWorldMeta {
+    std::array<double, 3> origin{0.0, 0.0, 0.0};
+    std::array<double, 3> rowDir{1.0, 0.0, 0.0};
+    std::array<double, 3> colDir{0.0, 1.0, 0.0};
+    std::array<double, 3> normDir{0.0, 0.0, 1.0};
+    std::array<double, 3> spacing{1.0, 1.0, 1.0};
+};
+
+struct LoadedDICOMVolume {
+    MedReg::Image3D img;
+    VolumeWorldMeta meta;
+    std::string seriesUID;
+};
+
+static std::array<double, 3> cross3(const std::array<double, 3>& a, const std::array<double, 3>& b) {
+    return {
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0]
+    };
+}
+
+static double dot3(const std::array<double, 3>& a, const std::array<double, 3>& b) {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+static std::array<double, 3> sub3(const std::array<double, 3>& a, const std::array<double, 3>& b) {
+    return {a[0] - b[0], a[1] - b[1], a[2] - b[2]};
+}
+
+static void normalize3(std::array<double, 3>& v) {
+    double n = std::sqrt(dot3(v, v));
+    if (n < 1e-10) {
+        v = {0.0, 0.0, 1.0};
+        return;
+    }
+    v[0] /= n; v[1] /= n; v[2] /= n;
+}
+
+static VolumeWorldMeta buildWorldMeta(const VolumeBuildResult& vb) {
+    VolumeWorldMeta m;
+    m.origin = {vb.origin[0], vb.origin[1], vb.origin[2]};
+    m.rowDir = {vb.orientationRow[0], vb.orientationRow[1], vb.orientationRow[2]};
+    m.colDir = {vb.orientationCol[0], vb.orientationCol[1], vb.orientationCol[2]};
+    normalize3(m.rowDir);
+    normalize3(m.colDir);
+    m.normDir = cross3(m.rowDir, m.colDir);
+    normalize3(m.normDir);
+    m.spacing = {
+        std::max(1e-6, vb.spacing[0]),
+        std::max(1e-6, vb.spacing[1]),
+        std::max(1e-6, vb.spacing[2])
+    };
+    return m;
+}
+
+static std::array<double, 3> voxelToWorld(const VolumeWorldMeta& m, double x, double y, double z) {
+    return {
+        m.origin[0] + m.rowDir[0] * m.spacing[0] * x + m.colDir[0] * m.spacing[1] * y + m.normDir[0] * m.spacing[2] * z,
+        m.origin[1] + m.rowDir[1] * m.spacing[0] * x + m.colDir[1] * m.spacing[1] * y + m.normDir[1] * m.spacing[2] * z,
+        m.origin[2] + m.rowDir[2] * m.spacing[0] * x + m.colDir[2] * m.spacing[1] * y + m.normDir[2] * m.spacing[2] * z
+    };
+}
+
+static std::array<double, 3> worldToVoxel(const VolumeWorldMeta& m, const std::array<double, 3>& world) {
+    const auto d = sub3(world, m.origin);
+    return {
+        dot3(d, m.rowDir) / m.spacing[0],
+        dot3(d, m.colDir) / m.spacing[1],
+        dot3(d, m.normDir) / m.spacing[2]
+    };
+}
+
 /**
  * @brief 将 VolumeBuildResult (8-bit) 转换为 MedReg::Image3D (float)
  *
@@ -197,31 +272,31 @@ static MedReg::Image3D volumeBuildToImage3D(const VolumeBuildResult& vb) {
 }
 
 /**
- * @brief 从 DICOM 文件夹加载体数据并降采样到目标尺寸
+ * @brief 从 DICOM 文件夹加载体数据（保持原生网格，不做降采样）
  *
  * 流程：
  *   1. collectSeries() — 扫描文件夹，按 ImagePositionPatient 排序切片
  *   2. buildVolume_none() — 用 DCMTK DicomImage 解码每张切片，拼接为 3D 体数据
  *   3. volumeBuildToImage3D() — 转为 float 归一化
- *   4. resizeVolume() — 三线性插值降采样到 targetW×targetH×targetD
+ *   4. 提取 DICOM 物理空间元信息（origin/row/col/normal/spacing）
  *   5. normalize() — 归一化到 [0,1]
  *
- * @param folder       DICOM 文件夹路径
- * @param targetW/H/D  降采样目标尺寸
- * @param label        用于日志输出的标签 ("CT" / "PET")
- * @return Image3D     加载失败时返回 empty volume
+ * @param folder DICOM 文件夹路径
+ * @param label  用于日志输出的标签 ("CT" / "PET")
+ * @return LoadedDICOMVolume 加载失败时 img.empty()=true
  */
-static MedReg::Image3D loadDICOMVolume(const std::string& folder,
-                                        int targetW, int targetH, int targetD,
-                                        const std::string& label) {
+static LoadedDICOMVolume loadDICOMVolumeNative(const std::string& folder,
+                                               const std::string& label) {
+    LoadedDICOMVolume loaded;
     std::cout << "[" << label << "] Scanning DICOM folder: " << folder << "\n";
 
     // Step 1: 收集并排序切片
     SeriesData series = collectSeries(folder);
     if (series.slices.empty()) {
         std::cerr << "[" << label << "] ERROR: No DICOM slices found in " << folder << "\n";
-        return {};
+        return loaded;
     }
+    loaded.seriesUID = series.seriesUID;
     std::cout << "[" << label << "] Found " << series.slices.size()
               << " slices (Series UID: " << series.seriesUID << ")\n";
 
@@ -229,7 +304,7 @@ static MedReg::Image3D loadDICOMVolume(const std::string& folder,
     VolumeBuildResult vol = buildVolume_none(series);
     if (vol.buffer.empty()) {
         std::cerr << "[" << label << "] ERROR: Failed to build volume from DICOM\n";
-        return {};
+        return loaded;
     }
     std::cout << "[" << label << "] Original volume: " << vol.width << "x" << vol.height
               << "x" << vol.depth << "  spacing=(" << vol.spacing[0] << ","
@@ -237,40 +312,91 @@ static MedReg::Image3D loadDICOMVolume(const std::string& folder,
 
     // Step 3: 转为 float Image3D
     MedReg::Image3D img = volumeBuildToImage3D(vol);
-
-    // Step 4: 降采样到目标尺寸（如果原始尺寸与目标不同）
-    if (img.width != targetW || img.height != targetH || img.depth != targetD) {
-        std::cout << "[" << label << "] Resampling " << img.width << "x" << img.height
-                  << "x" << img.depth << " -> " << targetW << "x" << targetH
-                  << "x" << targetD << "...\n";
-        img = MedReg::resizeVolume(img, targetW, targetH, targetD);
-    }
+    loaded.meta = buildWorldMeta(vol);
 
     // Step 5: 归一化到 [0,1]
     img.normalize();
-    std::cout << "[" << label << "] Loaded & normalized: " << img.width << "x"
+    std::cout << "[" << label << "] Loaded native grid & normalized: " << img.width << "x"
               << img.height << "x" << img.depth << "\n";
 
-    return img;
+    loaded.img = std::move(img);
+    return loaded;
+}
+
+/**
+ * @brief 将 src 体数据按物理空间重采样到 ref 网格（同一空间）
+ */
+static MedReg::Image3D resampleToReferenceGrid(const MedReg::Image3D& src,
+                                               const VolumeWorldMeta& srcMeta,
+                                               const MedReg::Image3D& ref,
+                                               const VolumeWorldMeta& refMeta) {
+    MedReg::Image3D out;
+    out.resize(ref.width, ref.height, ref.depth);
+    out.spacingX = ref.spacingX;
+    out.spacingY = ref.spacingY;
+    out.spacingZ = ref.spacingZ;
+
+    for (int z = 0; z < ref.depth; ++z) {
+        for (int y = 0; y < ref.height; ++y) {
+            for (int x = 0; x < ref.width; ++x) {
+                const auto world = voxelToWorld(refMeta, x, y, z);
+                const auto srcIdx = worldToVoxel(srcMeta, world);
+                out.data[out.idx(x, y, z)] = MedReg::trilinear(
+                    src,
+                    static_cast<float>(srcIdx[0]),
+                    static_cast<float>(srcIdx[1]),
+                    static_cast<float>(srcIdx[2])
+                );
+            }
+        }
+    }
+
+    return out;
 }
 
 // ============================================================
 //  初始化
 // ============================================================
 static bool initData() {
-    // 加载 CT（作为 Fixed/Reference）
-    g_ref = loadDICOMVolume(CT_FOLDER, VOL_W, VOL_H, VOL_D, "CT");
-    if (g_ref.empty()) {
+    // 1) 加载原生 CT 网格（Fixed）
+    const LoadedDICOMVolume ctNative = loadDICOMVolumeNative(CT_FOLDER, "CT");
+    if (ctNative.img.empty()) {
         std::cerr << "Failed to load CT data. Aborting.\n";
         return false;
     }
 
-    // 加载 PET（作为 Moving）
-    g_mov = loadDICOMVolume(PET_FOLDER, VOL_W, VOL_H, VOL_D, "PET");
-    if (g_mov.empty()) {
+    // 2) 加载原生 PET 网格（Moving）
+    const LoadedDICOMVolume petNative = loadDICOMVolumeNative(PET_FOLDER, "PET");
+    if (petNative.img.empty()) {
         std::cerr << "Failed to load PET data. Aborting.\n";
         return false;
     }
+
+    // 3) 标准做法：先把 PET 按物理空间重采样到 CT 原生网格
+    std::cout << "[Pipeline] Resampling PET to CT native grid (physical space)...\n";
+    MedReg::Image3D petOnCT = resampleToReferenceGrid(
+        petNative.img, petNative.meta,
+        ctNative.img, ctNative.meta
+    );
+    petOnCT.normalize();
+
+    // 4) 为配准速度再统一降采样到内部工作网格（可选）
+    g_ref = ctNative.img;
+    g_mov = petOnCT;
+
+    if (g_ref.width != VOL_W || g_ref.height != VOL_H || g_ref.depth != VOL_D) {
+        std::cout << "[CT] Working-grid resize: " << g_ref.width << "x" << g_ref.height << "x" << g_ref.depth
+                  << " -> " << VOL_W << "x" << VOL_H << "x" << VOL_D << "\n";
+        g_ref = MedReg::resizeVolume(g_ref, VOL_W, VOL_H, VOL_D);
+    }
+    if (g_mov.width != VOL_W || g_mov.height != VOL_H || g_mov.depth != VOL_D) {
+        std::cout << "[PET] Working-grid resize: " << g_mov.width << "x" << g_mov.height << "x" << g_mov.depth
+                  << " -> " << VOL_W << "x" << VOL_H << "x" << VOL_D << "\n";
+        g_mov = MedReg::resizeVolume(g_mov, VOL_W, VOL_H, VOL_D);
+    }
+
+    g_ref.normalize();
+    g_mov.normalize();
 
     auto makePanel = [&](int col, int row, const std::string& title,
                           const MedReg::Image3D& vol, bool ready) -> Panel {
