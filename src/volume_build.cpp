@@ -377,77 +377,94 @@ void removeBedArtifact(VolumeBuildResult& volume, uint8_t bodyThresh)
     const uint32_t D = volume.depth;
     if (W == 0 || H == 0 || D == 0) return;
 
+    const size_t sliceSize = (size_t)W * H;
+
     // 预计算圆形 FOV 掩码（CT 重建圆：半径 = 短边 / 2）
     const float cx     = W * 0.5f;
     const float cy     = H * 0.5f;
     const float radius = (std::min)(W, H) * 0.5f;
     const float r2     = radius * radius;
 
+    // 预分配所有缓冲区（循环外一次性分配，避免每片重复 new/delete）
+    std::vector<uint8_t>  fgMap(sliceSize);       // 0=背景, 1=前景
+    std::vector<int32_t>  labelMap(sliceSize);    // -1=背景, 0=未标记前景, >0=已标记
+    std::vector<uint8_t>  trueBg(sliceSize);      // 0=未访问, 1=真实背景
+    std::vector<int32_t>  compSize;               // compSize[label-1] = 像素数
+    compSize.reserve(256);                         // 预留空间，避免反复 realloc
+    // 用预分配数组做栈（替代 std::queue，避免 deque 的小块分配开销）
+    std::vector<int32_t>  stackBuf(sliceSize);    // 存储线性索引 y*W+x
+
+    const int ddx[4] = { 1, -1, 0,  0 };
+    const int ddy[4] = { 0,  0, 1, -1 };
+
     uint64_t removedVoxels = 0;
 
     // 逐轴向切片处理
     for (uint32_t z = 0; z < D; ++z)
     {
-        uint8_t* sl = volume.buffer.data() + (size_t)z * W * H;
+        uint8_t* sl = volume.buffer.data() + (size_t)z * sliceSize;
 
         // ---- Step 1: 圆形 FOV + 阈值 → 二值前景图 ----
-        // fgMap[i] = true 表示该像素是"身体候选"
-        std::vector<bool> fgMap(W * H, false);
         bool anyFg = false;
         for (uint32_t y = 0; y < H; ++y) {
             for (uint32_t x = 0; x < W; ++x) {
                 float dx = (float)x - cx;
                 float dy = (float)y - cy;
-                if (dx * dx + dy * dy <= r2 && sl[y * W + x] > bodyThresh) {
-                    fgMap[y * W + x] = true;
+                size_t idx = (size_t)y * W + x;
+                if (dx * dx + dy * dy <= r2 && sl[idx] > bodyThresh) {
+                    fgMap[idx] = 1;
                     anyFg = true;
+                } else {
+                    fgMap[idx] = 0;
                 }
             }
         }
         if (!anyFg) {
-            // 切片全为空气，直接清零
-            std::fill(sl, sl + W * H, uint8_t(0));
-            removedVoxels += W * H;
+            std::fill(sl, sl + sliceSize, uint8_t(0));
+            removedVoxels += sliceSize;
             continue;
         }
 
-        // ---- Step 2: 4-连通 BFS 标记前景连通域，找最大域 ----
-        // labelMap: -1=背景, 0=未标记前景, >0=已标记前景
-        std::vector<int> labelMap(W * H, -1);
-        for (uint32_t i = 0; i < W * H; ++i)
-            if (fgMap[i]) labelMap[i] = 0;
+        // ---- Step 2: 4-连通栈式标记前景连通域，找最大域 ----
+        // 重置 labelMap: 前景=0, 背景=-1
+        for (size_t i = 0; i < sliceSize; ++i)
+            labelMap[i] = fgMap[i] ? 0 : -1;
 
+        compSize.clear();
         int curLabel = 0;
-        std::vector<int> compSize;  // compSize[label-1] = 像素数
-        const int ddx[4] = { 1, -1, 0,  0 };
-        const int ddy[4] = { 0,  0, 1, -1 };
 
         for (uint32_t y = 0; y < H; ++y) {
             for (uint32_t x = 0; x < W; ++x) {
-                if (labelMap[y * W + x] != 0) continue;  // 背景或已标记
+                size_t seedIdx = (size_t)y * W + x;
+                if (labelMap[seedIdx] != 0) continue;  // 背景或已标记
                 ++curLabel;
                 compSize.push_back(0);
-                std::queue<std::pair<int,int>> q;
-                q.push({ (int)y, (int)x });
-                labelMap[y * W + x] = curLabel;
-                while (!q.empty()) {
-                    auto [fy, fx] = q.front(); q.pop();
+
+                // 栈式 DFS（用预分配数组，无动态内存分配）
+                int32_t sp = 0;
+                stackBuf[sp++] = (int32_t)seedIdx;
+                labelMap[seedIdx] = curLabel;
+                while (sp > 0) {
+                    int32_t cur = stackBuf[--sp];
+                    int fy = cur / (int)W;
+                    int fx = cur % (int)W;
                     compSize.back()++;
                     for (int k = 0; k < 4; ++k) {
                         int ny = fy + ddy[k];
                         int nx = fx + ddx[k];
                         if (ny < 0 || ny >= (int)H || nx < 0 || nx >= (int)W) continue;
-                        if (labelMap[ny * W + nx] != 0) continue;
-                        labelMap[ny * W + nx] = curLabel;
-                        q.push({ ny, nx });
+                        int32_t nIdx = ny * (int)W + nx;
+                        if (labelMap[nIdx] != 0) continue;
+                        labelMap[nIdx] = curLabel;
+                        stackBuf[sp++] = nIdx;
                     }
                 }
             }
         }
 
         if (curLabel == 0) {
-            std::fill(sl, sl + W * H, uint8_t(0));
-            removedVoxels += W * H;
+            std::fill(sl, sl + sliceSize, uint8_t(0));
+            removedVoxels += sliceSize;
             continue;
         }
 
@@ -457,40 +474,47 @@ void removeBedArtifact(VolumeBuildResult& volume, uint8_t bodyThresh)
             if (compSize[i - 1] > compSize[maxLabel - 1]) maxLabel = i;
 
         // ---- Step 3: 孔洞填充 ----
-        // 从图像四周边界出发，BFS 穿越"非最大域"背景 → 真实背景
-        // 被最大域包围但未标记为最大域的像素 = 孔洞 → 保留
-        std::vector<bool> trueBg(W * H, false);
-        std::queue<std::pair<int,int>> bfsBorder;
+        // 从图像四周边界出发，栈式 DFS 穿越"非最大域"背景 → 真实背景
+        std::fill(trueBg.begin(), trueBg.end(), uint8_t(0));
+
+        int32_t sp = 0;
         auto seedBorder = [&](int y, int x) {
-            if (labelMap[y * W + x] != maxLabel && !trueBg[y * W + x]) {
-                trueBg[y * W + x] = true;
-                bfsBorder.push({ y, x });
+            int32_t idx = y * (int)W + x;
+            if (labelMap[idx] != maxLabel && !trueBg[idx]) {
+                trueBg[idx] = 1;
+                stackBuf[sp++] = idx;
             }
         };
         for (uint32_t x = 0; x < W; ++x) { seedBorder(0,     (int)x); seedBorder((int)(H-1), (int)x); }
         for (uint32_t y = 1; y < H - 1; ++y) { seedBorder((int)y, 0); seedBorder((int)y, (int)(W-1)); }
-        while (!bfsBorder.empty()) {
-            auto [fy, fx] = bfsBorder.front(); bfsBorder.pop();
+        while (sp > 0) {
+            int32_t cur = stackBuf[--sp];
+            int fy = cur / (int)W;
+            int fx = cur % (int)W;
             for (int k = 0; k < 4; ++k) {
                 int ny = fy + ddy[k];
                 int nx = fx + ddx[k];
                 if (ny < 0 || ny >= (int)H || nx < 0 || nx >= (int)W) continue;
-                if (trueBg[ny * W + nx]) continue;
-                if (labelMap[ny * W + nx] == maxLabel) continue;  // 不穿越身体
-                trueBg[ny * W + nx] = true;
-                bfsBorder.push({ ny, nx });
+                int32_t nIdx = ny * (int)W + nx;
+                if (trueBg[nIdx]) continue;
+                if (labelMap[nIdx] == maxLabel) continue;  // 不穿越身体
+                trueBg[nIdx] = 1;
+                stackBuf[sp++] = nIdx;
             }
         }
 
         // ---- Step 4: 应用掩码 ----
-        // 最大域 OR 孔洞（非真实背景且非其他小域）= 保留；否则清零
-        for (uint32_t i = 0; i < W * H; ++i) {
+        for (size_t i = 0; i < sliceSize; ++i) {
             bool isBody = (labelMap[i] == maxLabel) || (!trueBg[i] && labelMap[i] == -1);
-            // labelMap[i]==-1 且 !trueBg[i] 表示边界不可达的背景像素（即孔洞）
             if (!isBody) {
                 sl[i] = 0;
                 ++removedVoxels;
             }
+        }
+
+        // 每 20 片输出一次进度
+        if ((z + 1) % 20 == 0 || z + 1 == D) {
+            std::cout << "  床板去除进度: " << (z + 1) << "/" << D << " 切片" << std::endl;
         }
     }
 

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="着色器">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>vert;frag;glsl</Extensions>
+    </Filter>
+    <Filter Include="文档">
+      <UniqueIdentifier>{a3a2e5c0-7b9d-4f5e-9c8a-1234567890ab}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="mesh.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="mesh_optimizer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gl_mesh.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="mesh_camera.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="deferred_renderer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="marching_cubes.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="dicom_mesh_loader.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main_mesh_render.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\glad.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\volume_build.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dicom_utils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\mesh_geometry_pass.vert">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\mesh_geometry_pass.frag">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\mesh_lighting_pass.vert">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\mesh_lighting_pass.frag">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\mesh_shadow_depth.vert">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\mesh_shadow_depth.frag">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\mesh_wireframe.vert">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\mesh_wireframe.frag">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\mesh_ssao.vert">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\mesh_ssao.frag">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\mesh_ssao_blur.frag">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\mesh_skybox.vert">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\mesh_skybox.frag">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="README.md">
+      <Filter>文档</Filter>
+    </None>
+  </ItemGroup>
+</Project>

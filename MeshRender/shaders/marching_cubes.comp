@@ -1,0 +1,191 @@
+/**
+ * @file    marching_cubes.comp
+ * @brief   GPU Marching Cubes Compute Shader (OpenGL 4.3)
+ *
+ * 单 Pass 算法：每个线程处理一个体素，用 atomicAdd 分配顶点输出位置。
+ *
+ * 注意：本文件不包含 #version 指令和查找表（edgeTable/triTable），
+ *       它们由 C++ 端（gpu_marching_cubes.hpp）在编译前拼接前置。
+ *
+ * 绑定布局：
+ *   Image Unit 0:  volumeImage  (r8ui 3D 纹理，只读)
+ *   SSBO Binding 1: vertices    (vec4[]，xyz=位置)
+ *   SSBO Binding 2: normals     (vec4[]，xyz=法线)
+ *   SSBO Binding 3: vertexCount (uint，原子计数器)
+ *   SSBO Binding 4: edgeTable   (int[256]，边查找表)
+ *   SSBO Binding 5: triTableFlat(int[4096]，三角形查找表)
+ */
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
+
+// ============================================================
+// 常量：体素角点偏移 & 边端点
+// ============================================================
+
+const ivec3 cornerOffset[8] = ivec3[8](
+    ivec3(0, 0, 0),  // v0
+    ivec3(1, 0, 0),  // v1
+    ivec3(1, 1, 0),  // v2
+    ivec3(0, 1, 0),  // v3
+    ivec3(0, 0, 1),  // v4
+    ivec3(1, 0, 1),  // v5
+    ivec3(1, 1, 1),  // v6
+    ivec3(0, 1, 1)   // v7
+);
+
+const ivec2 edgeEndpoints[12] = ivec2[12](
+    ivec2(0, 1), ivec2(1, 2), ivec2(2, 3), ivec2(3, 0),  // 底面 4 边
+    ivec2(4, 5), ivec2(5, 6), ivec2(6, 7), ivec2(7, 4),  // 顶面 4 边
+    ivec2(0, 4), ivec2(1, 5), ivec2(2, 6), ivec2(3, 7)   // 竖直 4 边
+);
+
+// ============================================================
+// 绑定
+// ============================================================
+
+layout(r8ui) readonly uniform uimage3D volumeImage;
+
+layout(std430, binding = 1) writeonly buffer VertexBuffer {
+    vec4 vertices[];  // xyz = 位置, w = 未使用
+};
+
+layout(std430, binding = 2) writeonly buffer NormalBuffer {
+    vec4 normals[];   // xyz = 法线, w = 未使用
+};
+
+layout(std430, binding = 3) buffer CounterBuffer {
+    uint vertexCount;  // 原子计数器
+};
+
+// 查找表（由 C++ 端通过 SSBO 上传，避免 GLSL 内联构造函数参数过多）
+layout(std430, binding = 4) readonly buffer EdgeTableBuffer {
+    int edgeTable[];  // 256 entries
+};
+
+layout(std430, binding = 5) readonly buffer TriTableBuffer {
+    int triTableFlat[];  // 4096 entries (256×16)
+};
+
+// ============================================================
+// Uniforms
+// ============================================================
+
+uniform int   volumeW, volumeH, volumeD;
+uniform float uIsovalue;
+uniform float uSx, uSy, uSz;    // 间距 × 缩放
+uniform float uOx, uOy, uOz;    // 原点
+uniform uint  uMaxVertices;     // 缓冲区容量
+
+// ============================================================
+// 辅助函数
+// ============================================================
+
+/** 安全采样体数据（越界返回 0） */
+uint safeLoad(ivec3 p) {
+    if (p.x < 0 || p.x >= volumeW ||
+        p.y < 0 || p.y >= volumeH ||
+        p.z < 0 || p.z >= volumeD)
+        return 0u;
+    return imageLoad(volumeImage, p).r;
+}
+
+/** 中心差分梯度法线（归一化，指向密度减小方向） */
+vec3 computeGradient(ivec3 p) {
+    float gx = float(safeLoad(p + ivec3(1, 0, 0))) - float(safeLoad(p - ivec3(1, 0, 0)));
+    float gy = float(safeLoad(p + ivec3(0, 1, 0))) - float(safeLoad(p - ivec3(0, 1, 0)));
+    float gz = float(safeLoad(p + ivec3(0, 0, 1))) - float(safeLoad(p - ivec3(0, 0, 1)));
+
+    vec3 n = vec3(-gx, -gy, -gz);  // 负号：法线朝外
+    float len = length(n);
+    if (len > 1e-6)
+        return n / len;
+    return vec3(0.0, 1.0, 0.0);
+}
+
+// ============================================================
+// 主函数
+// ============================================================
+
+void main() {
+    ivec3 coord = ivec3(gl_GlobalInvocationID);
+
+    // 边界检查：只处理 [0, W-2] × [0, H-2] × [0, D-2]
+    if (coord.x >= volumeW - 1 || coord.y >= volumeH - 1 || coord.z >= volumeD - 1)
+        return;
+
+    // --- 采样 8 个角点，计算体素配置 ---
+    float val[8];
+    int config = 0;
+
+    for (int i = 0; i < 8; i++) {
+        val[i] = float(imageLoad(volumeImage, coord + cornerOffset[i]).r);
+        if (val[i] < uIsovalue)
+            config |= (1 << i);
+    }
+
+    // 等值面不穿过此体素
+    if (config == 0 || config == 255)
+        return;
+
+    int edges = edgeTable[config];
+    if (edges == 0)
+        return;
+
+    // --- 计算每条相交边上的顶点位置和法线 ---
+    vec3 edgeVertex[12];
+    vec3 edgeNormal[12];
+    bool edgeValid[12];
+
+    for (int e = 0; e < 12; e++) {
+        edgeValid[e] = false;
+        if ((edges & (1 << e)) == 0)
+            continue;
+
+        int a = edgeEndpoints[e].x;
+        int b = edgeEndpoints[e].y;
+
+        float va = val[a];
+        float vb = val[b];
+        float diff = vb - va;
+        float t = (abs(diff) < 1e-6) ? 0.5 : (uIsovalue - va) / diff;
+
+        ivec3 ca = coord + cornerOffset[a];
+        ivec3 cb = coord + cornerOffset[b];
+
+        // 物理空间坐标
+        edgeVertex[e] = vec3(
+            uOx + (float(ca.x) + t * float(cb.x - ca.x)) * uSx,
+            uOy + (float(ca.y) + t * float(cb.y - ca.y)) * uSy,
+            uOz + (float(ca.z) + t * float(cb.z - ca.z)) * uSz
+        );
+
+        // 梯度法线（在交点附近采样）
+        ivec3 m = ivec3(vec3(ca) + t * vec3(cb - ca) + 0.5);
+        edgeNormal[e] = computeGradient(m);
+        edgeValid[e] = true;
+    }
+
+    // --- 根据三角形表生成三角形 ---
+    for (int i = 0; i < 16; i += 3) {
+        int e0 = triTableFlat[config * 16 + i];
+        if (e0 == -1) break;
+        int e1 = triTableFlat[config * 16 + i + 1];
+        int e2 = triTableFlat[config * 16 + i + 2];
+
+        if (!edgeValid[e0] || !edgeValid[e1] || !edgeValid[e2])
+            continue;
+
+        // 原子分配 3 个顶点位置
+        uint idx = atomicAdd(vertexCount, 3);
+        if (idx + 3 > uMaxVertices)
+            return;  // 缓冲区溢出保护
+
+        vertices[idx]     = vec4(edgeVertex[e0], 0.0);
+        vertices[idx + 1] = vec4(edgeVertex[e1], 0.0);
+        vertices[idx + 2] = vec4(edgeVertex[e2], 0.0);
+
+        normals[idx]     = vec4(edgeNormal[e0], 0.0);
+        normals[idx + 1] = vec4(edgeNormal[e1], 0.0);
+        normals[idx + 2] = vec4(edgeNormal[e2], 0.0);
+    }
+}
