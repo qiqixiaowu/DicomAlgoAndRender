@@ -49,10 +49,17 @@ std::vector<SliceLayer> sliceLayers;
 std::vector<ColorRGBf> palette;
 
 int currentLayer = 0;
-int renderMode = 0;  // 0=Solid, 1=Wireframe, 2=Slice, 3=Color
+int renderMode = 0;  // 0=Solid, 1=Wireframe, 2=Slice, 3=Color, 4=Pattern
 bool mouseLeftDown = false;
 bool mouseRightDown = false;
 double lastMouseX = 0, lastMouseY = 0;
+
+// 多图案纹理
+GLTexture texCartoon;    // 卡通图案
+GLTexture texPortrait;   // 头像照片
+GLTexture texGeometric;  // 几何图案
+GLTexture texText;       // 文字图案
+RenderPattern currentPattern = RenderPattern::Procedural;
 
 // ============================================================
 // 回调函数
@@ -116,6 +123,45 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             renderMode = 3;
             renderer.setRenderMode(RenderMode::ColorPreview);
             std::cout << "[模式] 颜色预览" << std::endl;
+            break;
+        case GLFW_KEY_5:
+            renderMode = 4;
+            currentPattern = RenderPattern::Procedural;
+            renderer.setRenderMode(RenderMode::PatternPreview);
+            renderer.setPattern(currentPattern);
+            std::cout << "[模式] 图案预览 — 程序化纹理" << std::endl;
+            break;
+        case GLFW_KEY_6:
+            renderMode = 4;
+            currentPattern = RenderPattern::Photo;
+            renderer.setRenderMode(RenderMode::PatternPreview);
+            renderer.setPattern(currentPattern);
+            renderer.setPatternTexture(texPortrait);
+            std::cout << "[模式] 图案预览 — 照片/头像" << std::endl;
+            break;
+        case GLFW_KEY_7:
+            renderMode = 4;
+            currentPattern = RenderPattern::Cartoon;
+            renderer.setRenderMode(RenderMode::PatternPreview);
+            renderer.setPattern(currentPattern);
+            renderer.setPatternTexture(texCartoon);
+            std::cout << "[模式] 图案预览 — 卡通风格" << std::endl;
+            break;
+        case GLFW_KEY_8:
+            renderMode = 4;
+            currentPattern = RenderPattern::FlatColor;
+            renderer.setRenderMode(RenderMode::PatternPreview);
+            renderer.setPattern(currentPattern);
+            renderer.setPatternTexture(texGeometric);
+            std::cout << "[模式] 图案预览 — 纯色块" << std::endl;
+            break;
+        case GLFW_KEY_9:
+            renderMode = 4;
+            currentPattern = RenderPattern::Text;
+            renderer.setRenderMode(RenderMode::PatternPreview);
+            renderer.setPattern(currentPattern);
+            renderer.setPatternTexture(texText);
+            std::cout << "[模式] 图案预览 — 文字图案" << std::endl;
             break;
         case GLFW_KEY_UP:
             if (renderMode == 2) {
@@ -277,6 +323,11 @@ void runNailPrintPipeline() {
     std::cout << "  键盘 2: 线框渲染" << std::endl;
     std::cout << "  键盘 3: 切片预览 (↑↓ 切换层)" << std::endl;
     std::cout << "  键盘 4: 颜色预览" << std::endl;
+    std::cout << "  键盘 5: 图案预览 — 程序化纹理" << std::endl;
+    std::cout << "  键盘 6: 图案预览 — 照片/头像" << std::endl;
+    std::cout << "  键盘 7: 图案预览 — 卡通风格" << std::endl;
+    std::cout << "  键盘 8: 图案预览 — 纯色块" << std::endl;
+    std::cout << "  键盘 9: 图案预览 — 文字图案" << std::endl;
     std::cout << "  ESC: 退出" << std::endl;
 }
 
@@ -360,6 +411,21 @@ int main() {
     camera.setTarget(glm::vec3(center.x, center.y, center.z));
     camera.setDistance(bboxSize * 1.5f);  // 距离 = 包围盒尺寸 * 1.5
 
+    // 生成测试纹理
+    std::cout << "\n>>> 生成测试纹理..." << std::endl;
+    texCartoon.generateTestPattern(0);     // 卡通花朵
+    texPortrait.generateTestPattern(1);    // 头像占位
+    texGeometric.generateTestPattern(2);   // 几何菱格
+    texText.generateTestPattern(3);        // 文字图案
+    std::cout << "    4个测试纹理已生成" << std::endl;
+
+    // 设置默认纹理变换
+    TextureTransform texXform;
+    texXform.scale = 1.0f;
+    texXform.opacity = 0.85f;
+    texXform.blendMode = 0;  // 正常混合
+    renderer.setTextureTransform(texXform);
+
     // 渲染循环
     while (!glfwWindowShouldClose(window)) {
         renderer.render(glMesh, camera);
@@ -369,6 +435,10 @@ int main() {
 
     glMesh.destroy();
     glSliceMesh.destroy();
+    texCartoon.destroy();
+    texPortrait.destroy();
+    texGeometric.destroy();
+    texText.destroy();
     glfwTerminate();
     return 0;
 }

@@ -131,6 +131,29 @@ struct ColorRGBA8 {
     }
 };
 
+// ============================================================
+// 渲染图案模式（DIY图案支持）
+// ============================================================
+
+/** @brief 渲染图案模式 */
+enum class RenderPattern {
+    Procedural = 0,   ///< 程序化纹理（shader内生成：渐变/条纹/月牙）
+    Photo      = 1,   ///< 照片/头像（纹理采样 + 完整光照）
+    Cartoon    = 2,   ///< 卡通风格（posterize + 描边）
+    FlatColor  = 3,   ///< 纯色块（无渐变，仅环境光）
+    Text       = 4    ///< 文字/SDF（锐利边缘）
+};
+
+/** @brief 纹理变换参数（让用户调整图案位置/大小/旋转） */
+struct TextureTransform {
+    float offsetX = 0.0f;   ///< UV平移 X
+    float offsetY = 0.0f;   ///< UV平移 Y
+    float scale   = 1.0f;   ///< UV缩放
+    float rotation = 0.0f;  ///< UV旋转（弧度）
+    float opacity = 1.0f;   ///< 图案不透明度
+    int   blendMode = 0;    ///< 混合模式: 0=正常, 1=正片叠底, 2=滤色, 3=覆盖
+};
+
 /** @brief 三角面片（含法线 + 颜色属性） */
 struct Triangle {
     Vec3 v[3];              ///< 三个顶点坐标

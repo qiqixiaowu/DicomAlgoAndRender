@@ -128,6 +128,36 @@ struct GLNailMesh {
 };
 
 // ============================================================
+// GPU纹理资源
+// ============================================================
+
+/** @brief OpenGL纹理封装（支持stb_image加载图片） */
+struct GLTexture {
+    GLuint id_ = 0;
+    int width_ = 0;
+    int height_ = 0;
+    int channels_ = 0;
+
+    GLTexture();
+    ~GLTexture();
+
+    /** @brief 从文件加载纹理（PNG/JPG/BMP等，使用stb_image） */
+    bool loadFromFile(const std::string& path);
+
+    /** @brief 从内存数据创建纹理（生成测试图案用） */
+    bool loadFromMemory(const unsigned char* data, int w, int h, int channels);
+
+    /** @brief 生成程序化测试纹理（渐变/棋盘格/卡通图案） */
+    bool generateTestPattern(int patternType, int w = 512, int h = 512);
+
+    /** @brief 绑定到指定纹理单元 */
+    void bind(int unit = 0) const;
+
+    /** @brief 释放GPU资源 */
+    void destroy();
+};
+
+// ============================================================
 // 渲染模式
 // ============================================================
 
@@ -136,14 +166,15 @@ enum class RenderMode {
     Wireframe,      ///< 线框
     Normal,         ///< 法线可视化
     SlicePreview,   ///< 切片预览
-    ColorPreview    ///< 颜色预览
+    ColorPreview,   ///< 颜色预览
+    PatternPreview  ///< 图案预览（DIY纹理）
 };
 
 // ============================================================
 // 网格渲染器
 // ============================================================
 
-/** @brief 网格渲染器（Blinn-Phong光照） */
+/** @brief 网格渲染器（Blinn-Phong光照 + 多模式纹理） */
 class NailMeshRenderer {
 public:
     NailMeshRenderer();
@@ -153,6 +184,11 @@ public:
 
     void render(const GLNailMesh& mesh, const RenderCamera& camera,
                 const glm::vec3& lightDir);
+
+    /** @brief 带纹理和图案模式的渲染 */
+    void renderWithTexture(const GLNailMesh& mesh, const RenderCamera& camera,
+                           const glm::vec3& lightDir, const GLTexture& texture,
+                           RenderPattern pattern, const TextureTransform& texXform);
 
     void setWireframe(bool wireframe) { wireframe_ = wireframe; }
 
@@ -219,6 +255,14 @@ public:
     void setCurrentLayer(int layer);
     void setLightDir(const glm::vec3& dir);
 
+    /** @brief 设置DIY图案纹理和渲染模式 */
+    void setPatternTexture(const GLTexture& tex) { patternTexture_ = tex; }
+    void setPattern(RenderPattern p) { pattern_ = p; }
+    void setTextureTransform(const TextureTransform& t) { texXform_ = t; }
+
+    RenderPattern getPattern() const { return pattern_; }
+    RenderMode getRenderMode() const { return mode_; }
+
 private:
     NailMeshRenderer meshRenderer_;
     SlicePreviewRenderer sliceRenderer_;
@@ -229,6 +273,11 @@ private:
     int currentLayer_ = 0;
     glm::vec3 lightDir_ = glm::vec3(0.5f, 1.0f, 0.3f);
     std::vector<ColorRGBf> palette_;
+
+    // DIY图案渲染
+    GLTexture patternTexture_;
+    RenderPattern pattern_ = RenderPattern::Procedural;
+    TextureTransform texXform_;
 };
 
 } // namespace NailPrint3D
