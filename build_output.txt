@@ -1,0 +1,69 @@
+﻿适用于 .NET Framework MSBuild 版本 17.14.40+3e7442088
+生成启动时间为 2026/09/20 11:38:29。
+
+     1>项目“F:\渲染\OpenglRender\OpenglRender.sln”在节点 1 上(NailPrint3D 个目标)。
+     1>ValidateSolutionConfiguration:
+         正在生成解决方案配置“Debug|x64”。
+     1>项目“F:\渲染\OpenglRender\OpenglRender.sln”(1)正在节点 1 上生成“F:\渲染\OpenglRender\NailPrint3D\NailPrint3D.vcxproj”(2) (默认目标)。
+     2>PrepareForBuild:
+         已启用结构化输出。编译器诊断的格式设置将反映错误层次结构。有关详细信息，请参阅 https://aka.ms/cpp/structured-output。
+       InitializeBuildStatus:
+         正在对“x64\Debug\NailPrint3D.tlog\unsuccessfulbuild”执行 Touch 任务。
+       VcpkgTripletSelection:
+         Using triplet "x64-windows" from "E:\scripts\vcpkg\installed\x64-windows\"
+         Using normalized configuration "Debug"
+       ClCompile:
+         C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.44.35207\bin\HostX86\x64\CL.exe /c /Iinclude /IE:\glfw\Includes /IE:\glad\include /IE:\All\stb\stb /IE:\All\glm /Iinclude /IE:\glfw\Includes /IE:\glad\include /IE:\All\stb\stb /IE:\All\glm /I"E:\scripts\vcpkg\installed\x64-windows\include" /ZI /JMC /nologo /W3 /WX- /diagnostics:column /sdl /Od /D _DEBUG /D _CONSOLE /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /std:c++17 /permissive- /Fo"x64\Debug\\" /Fd"x64\Debug\vc143.pdb" /external:W3 /Gd /TP /FC /errorReport:queue /utf-8 src\main_nail_print.cpp
+         main_nail_print.cpp
+     2>C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\shared\minwindef.h(130,9): warning C4005: “APIENTRY”: 宏重定义 [F:\渲染\OpenglRender\NailPrint3D\NailPrint3D.vcxproj]
+         (编译源文件“src/main_nail_print.cpp”)
+             E:\glfw\Includes\glad\glad.h(32,9):
+             参见“APIENTRY”的前一个定义
+         
+         C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.44.35207\bin\HostX86\x64\CL.exe /c /Iinclude /IE:\glfw\Includes /IE:\glad\include /IE:\All\stb\stb /IE:\All\glm /Iinclude /IE:\glfw\Includes /IE:\glad\include /IE:\All\stb\stb /IE:\All\glm /I"E:\scripts\vcpkg\installed\x64-windows\include" /ZI /JMC /nologo /W3 /WX- /diagnostics:column /sdl /Od /D _DEBUG /D _CONSOLE /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /std:c17 /permissive- /Fo"x64\Debug\\" /Fd"x64\Debug\vc143.pdb" /external:W3 /Gd /TC /FC /errorReport:queue /utf-8 ..\src\glad.c
+         glad.c
+       Link:
+         C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.44.35207\bin\HostX86\x64\link.exe /ERRORREPORT:QUEUE /OUT:"F:\渲染\OpenglRender\x64\Debug\NailPrint3D.exe" /INCREMENTAL /ILK:"x64\Debug\NailPrint3D.ilk" /NOLOGO /LIBPATH:"E:\scripts\vcpkg\installed\x64-windows\debug\lib" /LIBPATH:"E:\scripts\vcpkg\installed\x64-windows\debug\lib\manual-link" glfw3.lib opengl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "E:\scripts\vcpkg\installed\x64-windows\debug\lib\*.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"F:\渲染\OpenglRender\x64\Debug\NailPrint3D.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"F:\渲染\OpenglRender\x64\Debug\NailPrint3D.lib" /MACHINE:X64 x64\Debug\stl_loader.obj
+         x64\Debug\nail_reconstruction.obj
+         x64\Debug\nail_slicer.obj
+         x64\Debug\nail_color.obj
+         x64\Debug\nail_gcode.obj
+         x64\Debug\nail_renderer.obj
+         x64\Debug\main_nail_print.obj
+         x64\Debug\glad.obj
+         NailPrint3D.vcxproj -> F:\渲染\OpenglRender\x64\Debug\NailPrint3D.exe
+       AppLocalFromInstalled:
+         pwsh.exe -ExecutionPolicy Bypass -noprofile -File "E:\scripts\vcpkg\scripts\buildsystems\msbuild\applocal.ps1" "F:\渲染\OpenglRender\x64\Debug\NailPrint3D.exe" "E:\scripts\vcpkg\installed\x64-windows\debug\bin" "x64\Debug\NailPrint3D.tlog\NailPrint3D.write.1u.tlog" "x64\Debug\vcpkg.applocal.log"
+         'pwsh.exe' 不是内部或外部命令，也不是可运行的程序
+         或批处理文件。
+         命令“pwsh.exe -ExecutionPolicy Bypass -noprofile -File "E:\scripts\vcpkg\scripts\buildsystems\msbuild\applocal.ps1" "F:\渲染\OpenglRender\x64\Debug\NailPrint3D.exe" "E:\scripts\vcpkg\installed\x64-windows\debug\bin" "x64\Debug\NailPrint3D.tlog\NailPrint3D.write.1u.tlog" "x64\Debug\vcpkg.applocal.log"”已退出，代码为 9009。
+         "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -ExecutionPolicy Bypass -noprofile -File "E:\scripts\vcpkg\scripts\buildsystems\msbuild\applocal.ps1" "F:\渲染\OpenglRender\x64\Debug\NailPrint3D.exe" "E:\scripts\vcpkg\installed\x64-windows\debug\bin" "x64\Debug\NailPrint3D.tlog\NailPrint3D.write.1u.tlog" "x64\Debug\vcpkg.applocal.log"
+       PostBuildEvent:
+         xcopy /Y /I /E "F:\渲染\OpenglRender\NailPrint3D\shaders" "F:\渲染\OpenglRender\x64\Debug\shaders"
+         :VCEnd
+         F:\渲染\OpenglRender\NailPrint3D\shaders\nail_mesh.frag
+         F:\渲染\OpenglRender\NailPrint3D\shaders\nail_mesh.vert
+         F:\渲染\OpenglRender\NailPrint3D\shaders\nail_normal.frag
+         F:\渲染\OpenglRender\NailPrint3D\shaders\nail_normal.vert
+         F:\渲染\OpenglRender\NailPrint3D\shaders\nail_palette.frag
+         F:\渲染\OpenglRender\NailPrint3D\shaders\nail_palette.vert
+         F:\渲染\OpenglRender\NailPrint3D\shaders\nail_slice_line.frag
+         F:\渲染\OpenglRender\NailPrint3D\shaders\nail_slice_line.vert
+         复制了 8 个文件
+       FinalizeBuildStatus:
+         正在删除文件“x64\Debug\NailPrint3D.tlog\unsuccessfulbuild”。
+         正在对“x64\Debug\NailPrint3D.tlog\NailPrint3D.lastbuildstate”执行 Touch 任务。
+     2>已完成生成项目“F:\渲染\OpenglRender\NailPrint3D\NailPrint3D.vcxproj”(默认目标)的操作。
+     1>已完成生成项目“F:\渲染\OpenglRender\OpenglRender.sln”(NailPrint3D 个目标)的操作。
+
+已成功生成。
+
+       “F:\渲染\OpenglRender\OpenglRender.sln”(NailPrint3D 目标) (1) ->
+       “F:\渲染\OpenglRender\NailPrint3D\NailPrint3D.vcxproj”(默认目标) (2) ->
+       (ClCompile 目标) -> 
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\shared\minwindef.h(130,9): warning C4005: “APIENTRY”: 宏重定义 [F:\渲染\OpenglRender\NailPrint3D\NailPrint3D.vcxproj]
+
+    1 个警告
+    0 个错误
+
+已用时间 00:00:11.63

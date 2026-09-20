@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="着色器">
+      <UniqueIdentifier>{D9D6E242-F8AF-46E4-B9A7-2B5C0E9C7F8A}</UniqueIdentifier>
+      <Extensions>vert;frag;comp;glsl</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\nail_types.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stl_loader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\nail_reconstruction.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\nail_slicer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\nail_color.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\nail_gcode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\nail_renderer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\stl_loader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nail_reconstruction.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nail_slicer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nail_color.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nail_gcode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nail_renderer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main_nail_print.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\glad.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\nail_mesh.vert">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\nail_mesh.frag">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\nail_normal.vert">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\nail_normal.frag">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\nail_slice_line.vert">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\nail_slice_line.frag">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\nail_palette.vert">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="shaders\nail_palette.frag">
+      <Filter>着色器</Filter>
+    </None>
+  </ItemGroup>
+</Project>
