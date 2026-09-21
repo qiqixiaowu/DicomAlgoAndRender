@@ -259,6 +259,7 @@ public:
     void setPatternTexture(const GLTexture& tex) { patternTexture_ = tex; }
     void setPattern(RenderPattern p) { pattern_ = p; }
     void setTextureTransform(const TextureTransform& t) { texXform_ = t; }
+    TextureTransform getTexTransform() const { return texXform_; }
 
     RenderPattern getPattern() const { return pattern_; }
     RenderMode getRenderMode() const { return mode_; }

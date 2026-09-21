@@ -141,7 +141,8 @@ enum class RenderPattern {
     Photo      = 1,   ///< 照片/头像（纹理采样 + 完整光照）
     Cartoon    = 2,   ///< 卡通风格（posterize + 描边）
     FlatColor  = 3,   ///< 纯色块（无渐变，仅环境光）
-    Text       = 4    ///< 文字/SDF（锐利边缘）
+    Text       = 4,   ///< 文字/SDF（锐利边缘）
+    Iridescent = 5    ///< 流光溢彩（虹彩/珠光效果）
 };
 
 /** @brief 纹理变换参数（让用户调整图案位置/大小/旋转） */
@@ -152,6 +153,7 @@ struct TextureTransform {
     float rotation = 0.0f;  ///< UV旋转（弧度）
     float opacity = 1.0f;   ///< 图案不透明度
     int   blendMode = 0;    ///< 混合模式: 0=正常, 1=正片叠底, 2=滤色, 3=覆盖
+    float reliefHeight = 0.0f; ///< 3D浮雕高度（0=平面, >0=凸起）
 };
 
 /** @brief 三角面片（含法线 + 颜色属性） */
@@ -159,6 +161,7 @@ struct Triangle {
     Vec3 v[3];              ///< 三个顶点坐标
     Vec3 normal;            ///< 面法线
     Vec2UV uv[3];           ///< 三个顶点的UV坐标
+    ColorRGBf vcolor[3];    ///< 三个顶点的颜色（用于多色装饰物）
     uint16_t attr = 0;      ///< 属性字节（可用于颜色索引）
     uint32_t idx[3] = {0,0,0}; ///< 顶点索引（用于渲染）
 };

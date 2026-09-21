@@ -59,11 +59,206 @@ GLTexture texCartoon;    // 卡通图案
 GLTexture texPortrait;   // 头像照片
 GLTexture texGeometric;  // 几何图案
 GLTexture texText;       // 文字图案
+GLTexture texUserPhoto;  // 用户导入的图片
+bool userPhotoLoaded = false;  // 是否已导入图片
 RenderPattern currentPattern = RenderPattern::Procedural;
+
+// 3D浮雕控制
+float reliefHeight = 0.0f;       // 浮雕高度（mm），0=平面
+bool  displacementApplied = false; // 是否已对网格做位移映射
+Mesh  originalMesh;              // 保存原始网格（位移前），用于重新位移
+
+// 3D立体装饰物控制
+int  currentOrnament = -1;       // -1=无装饰物, 0=蜘蛛, 1=花, 2=星, 3=蝴蝶, 4=爱心, 5=蝴蝶结, 6=皇冠, 7=宝石
+float ornamentSize = 15.0f;      // 装饰物大小
+float ornamentU = 0.5f;          // 装饰物U位置 (0~1)
+float ornamentV = 0.5f;          // 装饰物V位置 (0~1)
+float ornamentRotation = 0.0f;   // 装饰物旋转
+Mesh  nailBaseMesh;              // 纯甲片网格（无装饰物），用于重新放置装饰物
 
 // ============================================================
 // 回调函数
 // ============================================================
+
+/// 将当前纹理的像素数据应用到网格做3D位移映射
+void applyDisplacementToMesh(float height) {
+    if (height <= 0.001f) {
+        // 恢复原始网格
+        currentMesh = originalMesh;
+        displacementApplied = false;
+        glMesh.upload(currentMesh);
+        std::cout << "[浮雕] 已恢复平面网格" << std::endl;
+        return;
+    }
+
+    // 从当前纹理获取像素数据
+    // 使用stb_image重新读取已生成的测试纹理数据
+    // 这里我们直接用generateTestPattern的内部逻辑重新生成像素数据
+    // 更好的方式是从GPU读回纹理，但为简化，我们用stb_image加载文件或重新生成
+
+    // 恢复原始网格再做位移
+    currentMesh = originalMesh;
+
+    // 根据当前图案类型生成对应的像素数据
+    int w = 512, h = 512;
+    std::vector<unsigned char> pixels(w * h * 4);
+
+    // 重新生成当前图案的像素数据
+    // 简化方案：直接用程序化方式生成亮度图
+    for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+            float u = (float)x / w;
+            float v = (float)y / h;
+            int idx = (y * w + x) * 4;
+
+            // 根据当前图案类型生成亮度
+            float lum = 0.5f;
+            unsigned char r = 128, g = 128, b = 128;
+
+            if (currentPattern == RenderPattern::Cartoon) {
+                // 卡通花朵：花瓣亮，背景暗
+                float cx = 0.5f, cy = 0.5f;
+                float dx = u - cx, dy = v - cy;
+                float dist = std::sqrt(dx * dx + dy * dy);
+                float angle = std::atan2(dy, dx);
+                float petalR = 0.3f + 0.1f * std::cos(5.0f * angle);
+                if (dist < petalR) {
+                    lum = 0.9f - dist * 0.5f;
+                    r = 255; g = 100; b = 150;
+                } else {
+                    lum = 0.2f;
+                    r = 255; g = 240; b = 180;
+                }
+            } else if (currentPattern == RenderPattern::Photo) {
+                // 头像：脸部亮，背景暗
+                float dx = (u - 0.5f) * 1.2f, dy = (v - 0.45f) * 1.5f;
+                float faceDist = std::sqrt(dx * dx + dy * dy);
+                if (faceDist < 0.3f) {
+                    lum = 0.7f + 0.1f * (1.0f - faceDist / 0.3f);
+                    r = 230; g = 195; b = 170;
+                } else {
+                    lum = 0.15f;
+                    r = 200; g = 200; b = 210;
+                }
+            } else if (currentPattern == RenderPattern::FlatColor) {
+                // 几何菱格
+                float scale = 6.0f;
+                float fu = u * scale - std::floor(u * scale);
+                float fv = v * scale - std::floor(v * scale);
+                float diamond = std::abs(fu - 0.5f) + std::abs(fv - 0.5f);
+                if (diamond < 0.25f) {
+                    lum = 0.8f;
+                    r = 255; g = 100; b = 150;
+                } else {
+                    lum = 0.3f;
+                    r = 200; g = 200; b = 220;
+                }
+            } else if (currentPattern == RenderPattern::Text) {
+                // 文字：字母亮，背景暗
+                int gx = (int)(u * 16);
+                int gy = (int)(v * 4);
+                const char* letters[4] = {"NAIL", "AIL ", "IL  ", "L   "};
+                char ch = letters[gy][gx % 4];
+                if (ch != ' ') {
+                    lum = 0.9f;
+                    r = 220; g = 60; b = 100;
+                } else {
+                    lum = 0.1f;
+                    r = 245; g = 235; b = 240;
+                }
+            }
+
+            pixels[idx] = r;
+            pixels[idx + 1] = g;
+            pixels[idx + 2] = b;
+            pixels[idx + 3] = 255;
+        }
+    }
+
+    // 应用位移映射
+    NailMeshGenerator::applyDisplacementMap(currentMesh, pixels.data(), w, h, height);
+    glMesh.upload(currentMesh);
+    displacementApplied = true;
+
+    std::cout << "[浮雕] 位移高度=" << height << "mm, 网格已更新" << std::endl;
+}
+
+/// 装饰物类型名称
+const char* ornamentNames[] = {
+    "小蜘蛛", "立体花朵", "五角星", "蝴蝶", "爱心", "蝴蝶结", "小皇冠", "宝石"
+};
+
+/// 装饰物颜色方案（每套8种装饰物各一个主色）
+struct ColorScheme {
+    const char* name;
+    ColorRGBf colors[8];
+};
+static ColorScheme colorSchemes[] = {
+    { "鲜艳",
+      { ColorRGBf(0.15f, 0.08f, 0.08f),  // 蜘蛛：黑色
+        ColorRGBf(0.9f, 0.3f, 0.5f),   // 花朵：玫粉
+        ColorRGBf(1.0f, 0.8f, 0.2f),   // 星星：金色
+        ColorRGBf(0.6f, 0.3f, 0.8f),   // 蝴蝶：紫色
+        ColorRGBf(0.9f, 0.2f, 0.3f),   // 爱心：红色
+        ColorRGBf(0.8f, 0.2f, 0.4f),   // 蝴蝶结：玫红
+        ColorRGBf(1.0f, 0.85f, 0.3f),  // 皇冠：金色
+        ColorRGBf(0.3f, 0.6f, 0.9f) } }, // 宝石：蓝色
+    { "马卡龙",
+      { ColorRGBf(0.3f, 0.3f, 0.35f),   // 蜘蛛：深灰
+        ColorRGBf(0.95f, 0.6f, 0.7f),  // 花朵：粉色
+        ColorRGBf(0.9f, 0.75f, 0.3f),  // 星星：香槟金
+        ColorRGBf(0.6f, 0.8f, 0.9f),   // 蝴蝶：天蓝
+        ColorRGBf(0.9f, 0.5f, 0.6f),   // 爱心：粉红
+        ColorRGBf(0.8f, 0.6f, 0.9f),   // 蝴蝶结：淡紫
+        ColorRGBf(0.95f, 0.8f, 0.4f),  // 皇冠：浅金
+        ColorRGBf(0.5f, 0.8f, 0.7f) } }, // 宝石：薄荷绿
+    { "宝石",
+      { ColorRGBf(0.1f, 0.1f, 0.15f),   // 蜘蛛：黑
+        ColorRGBf(0.8f, 0.1f, 0.2f),   // 花朵：宝石红
+        ColorRGBf(0.9f, 0.7f, 0.1f),   // 星星：宝石黄
+        ColorRGBf(0.1f, 0.4f, 0.8f),   // 蝴蝶：蓝宝石
+        ColorRGBf(0.9f, 0.15f, 0.3f),  // 爱心：红宝石
+        ColorRGBf(0.2f, 0.6f, 0.4f),   // 蝴蝶结：祖母绿
+        ColorRGBf(0.85f, 0.7f, 0.2f),  // 皇冠：金色
+        ColorRGBf(0.3f, 0.5f, 0.9f) } }, // 宝石：蓝宝石
+    { "糖果",
+      { ColorRGBf(0.25f, 0.15f, 0.1f),  // 蜘蛛：棕黑
+        ColorRGBf(1.0f, 0.4f, 0.6f),   // 花朵：糖果粉
+        ColorRGBf(1.0f, 0.9f, 0.3f),   // 星星：柠檬黄
+        ColorRGBf(0.5f, 0.2f, 0.9f),   // 蝴蝶：葡萄紫
+        ColorRGBf(1.0f, 0.3f, 0.4f),   // 爱心：草莓红
+        ColorRGBf(0.9f, 0.3f, 0.5f),   // 蝴蝶结：覆盆子
+        ColorRGBf(1.0f, 0.8f, 0.2f),   // 皇冠：金色
+        ColorRGBf(0.2f, 0.7f, 0.9f) } }, // 宝石：海蓝
+};
+static int currentColorScheme = 0;
+static const int numColorSchemes = sizeof(colorSchemes) / sizeof(colorSchemes[0]);
+
+/// 在甲片上放置/移除3D装饰物
+void applyOrnamentToMesh() {
+    if (currentOrnament < 0) {
+        // 移除装饰物，恢复纯甲片
+        currentMesh = nailBaseMesh;
+        glMesh.upload(currentMesh);
+        std::cout << "[装饰物] 已移除，恢复纯甲片" << std::endl;
+        return;
+    }
+
+    // 生成装饰物
+    OrnamentType type = (OrnamentType)currentOrnament;
+    ColorRGBf ornColor = colorSchemes[currentColorScheme].colors[currentOrnament];
+    Mesh ornament = OrnamentGenerator::generate(type, ornamentSize, ornColor);
+
+    // 放置到甲片上
+    currentMesh = OrnamentGenerator::placeOnNail(
+        nailBaseMesh, ornament, ornamentU, ornamentV, 1.0f, ornamentRotation);
+
+    glMesh.upload(currentMesh);
+    std::cout << "[装饰物] " << ornamentNames[currentOrnament]
+              << " 已放置 (大小=" << ornamentSize
+              << ", 位置=" << ornamentU << "," << ornamentV
+              << ", 配色=" << colorSchemes[currentColorScheme].name << ")" << std::endl;
+}
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -129,6 +324,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             currentPattern = RenderPattern::Procedural;
             renderer.setRenderMode(RenderMode::PatternPreview);
             renderer.setPattern(currentPattern);
+            if (reliefHeight > 0.0f) applyDisplacementToMesh(reliefHeight);
             std::cout << "[模式] 图案预览 — 程序化纹理" << std::endl;
             break;
         case GLFW_KEY_6:
@@ -136,8 +332,11 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             currentPattern = RenderPattern::Photo;
             renderer.setRenderMode(RenderMode::PatternPreview);
             renderer.setPattern(currentPattern);
-            renderer.setPatternTexture(texPortrait);
-            std::cout << "[模式] 图案预览 — 照片/头像" << std::endl;
+            // 优先使用用户导入的图片，否则用内置测试头像
+            renderer.setPatternTexture(userPhotoLoaded ? texUserPhoto : texPortrait);
+            if (reliefHeight > 0.0f) applyDisplacementToMesh(reliefHeight);
+            std::cout << "[模式] 图案预览 — 照片/头像"
+                      << (userPhotoLoaded ? "（用户图片）" : "（内置测试）") << std::endl;
             break;
         case GLFW_KEY_7:
             renderMode = 4;
@@ -145,6 +344,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             renderer.setRenderMode(RenderMode::PatternPreview);
             renderer.setPattern(currentPattern);
             renderer.setPatternTexture(texCartoon);
+            if (reliefHeight > 0.0f) applyDisplacementToMesh(reliefHeight);
             std::cout << "[模式] 图案预览 — 卡通风格" << std::endl;
             break;
         case GLFW_KEY_8:
@@ -153,6 +353,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             renderer.setRenderMode(RenderMode::PatternPreview);
             renderer.setPattern(currentPattern);
             renderer.setPatternTexture(texGeometric);
+            if (reliefHeight > 0.0f) applyDisplacementToMesh(reliefHeight);
             std::cout << "[模式] 图案预览 — 纯色块" << std::endl;
             break;
         case GLFW_KEY_9:
@@ -161,7 +362,177 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             renderer.setRenderMode(RenderMode::PatternPreview);
             renderer.setPattern(currentPattern);
             renderer.setPatternTexture(texText);
+            if (reliefHeight > 0.0f) applyDisplacementToMesh(reliefHeight);
             std::cout << "[模式] 图案预览 — 文字图案" << std::endl;
+            break;
+        case GLFW_KEY_R:
+            // 增加浮雕高度
+            reliefHeight = std::min(reliefHeight + 0.2f, 3.0f);
+            applyDisplacementToMesh(reliefHeight);
+            {
+                TextureTransform t = renderer.getTexTransform();
+                t.reliefHeight = reliefHeight * 0.05f;  // 视差映射系数
+                renderer.setTextureTransform(t);
+            }
+            std::cout << "[浮雕] 高度 = " << reliefHeight << "mm" << std::endl;
+            break;
+        case GLFW_KEY_F:
+            // 减少浮雕高度
+            reliefHeight = std::max(reliefHeight - 0.2f, 0.0f);
+            applyDisplacementToMesh(reliefHeight);
+            {
+                TextureTransform t2 = renderer.getTexTransform();
+                t2.reliefHeight = reliefHeight * 0.05f;
+                renderer.setTextureTransform(t2);
+            }
+            std::cout << "[浮雕] 高度 = " << reliefHeight << "mm" << std::endl;
+            break;
+        case GLFW_KEY_0:
+            // 重置浮雕
+            reliefHeight = 0.0f;
+            applyDisplacementToMesh(0.0f);
+            {
+                TextureTransform t3 = renderer.getTexTransform();
+                t3.reliefHeight = 0.0f;
+                renderer.setTextureTransform(t3);
+            }
+            std::cout << "[浮雕] 已重置为平面" << std::endl;
+            break;
+        // === 3D立体装饰物 ===
+        // F1~F8 选择装饰物类型
+        case GLFW_KEY_F1:
+            currentOrnament = 0;
+            applyOrnamentToMesh();
+            std::cout << "[3D装饰] 小蜘蛛" << std::endl;
+            break;
+        case GLFW_KEY_F2:
+            currentOrnament = 1;
+            applyOrnamentToMesh();
+            std::cout << "[3D装饰] 立体花朵" << std::endl;
+            break;
+        case GLFW_KEY_F3:
+            currentOrnament = 2;
+            applyOrnamentToMesh();
+            std::cout << "[3D装饰] 五角星" << std::endl;
+            break;
+        case GLFW_KEY_F4:
+            currentOrnament = 3;
+            applyOrnamentToMesh();
+            std::cout << "[3D装饰] 蝴蝶" << std::endl;
+            break;
+        case GLFW_KEY_F5:
+            currentOrnament = 4;
+            applyOrnamentToMesh();
+            std::cout << "[3D装饰] 爱心" << std::endl;
+            break;
+        case GLFW_KEY_F6:
+            currentOrnament = 5;
+            applyOrnamentToMesh();
+            std::cout << "[3D装饰] 蝴蝶结" << std::endl;
+            break;
+        case GLFW_KEY_F7:
+            currentOrnament = 6;
+            applyOrnamentToMesh();
+            std::cout << "[3D装饰] 小皇冠" << std::endl;
+            break;
+        case GLFW_KEY_F8:
+            currentOrnament = 7;
+            applyOrnamentToMesh();
+            std::cout << "[3D装饰] 宝石" << std::endl;
+            break;
+        case GLFW_KEY_F9:
+            // 移除装饰物
+            currentOrnament = -1;
+            applyOrnamentToMesh();
+            std::cout << "[3D装饰] 已移除" << std::endl;
+            break;
+        case GLFW_KEY_F10:
+            // 切换到实体渲染模式查看3D装饰物
+            renderMode = 0;
+            renderer.setRenderMode(RenderMode::Solid);
+            std::cout << "[模式] 实体渲染（查看3D装饰物）" << std::endl;
+            break;
+        // 装饰物调整
+        case GLFW_KEY_LEFT_BRACKET:  // [
+            ornamentSize = std::max(ornamentSize - 2.0f, 5.0f);
+            if (currentOrnament >= 0) applyOrnamentToMesh();
+            std::cout << "[3D装饰] 大小 = " << ornamentSize << std::endl;
+            break;
+        case GLFW_KEY_RIGHT_BRACKET: // ]
+            ornamentSize = std::min(ornamentSize + 2.0f, 40.0f);
+            if (currentOrnament >= 0) applyOrnamentToMesh();
+            std::cout << "[3D装饰] 大小 = " << ornamentSize << std::endl;
+            break;
+        case GLFW_KEY_I:
+            // 装饰物向上移动
+            ornamentV = std::min(ornamentV + 0.1f, 0.9f);
+            if (currentOrnament >= 0) applyOrnamentToMesh();
+            std::cout << "[3D装饰] 位置 V=" << ornamentV << std::endl;
+            break;
+        case GLFW_KEY_K:
+            // 装饰物向下移动
+            ornamentV = std::max(ornamentV - 0.1f, 0.1f);
+            if (currentOrnament >= 0) applyOrnamentToMesh();
+            std::cout << "[3D装饰] 位置 V=" << ornamentV << std::endl;
+            break;
+        case GLFW_KEY_J:
+            // 装饰物向左移动
+            ornamentU = std::max(ornamentU - 0.1f, 0.1f);
+            if (currentOrnament >= 0) applyOrnamentToMesh();
+            std::cout << "[3D装饰] 位置 U=" << ornamentU << std::endl;
+            break;
+        case GLFW_KEY_L:
+            // 装饰物向右移动
+            ornamentU = std::min(ornamentU + 0.1f, 0.9f);
+            if (currentOrnament >= 0) applyOrnamentToMesh();
+            std::cout << "[3D装饰] 位置 U=" << ornamentU << std::endl;
+            break;
+        case GLFW_KEY_O:
+            // 旋转装饰物
+            ornamentRotation += 0.3f;
+            if (currentOrnament >= 0) applyOrnamentToMesh();
+            std::cout << "[3D装饰] 旋转 = " << ornamentRotation << std::endl;
+            break;
+        case GLFW_KEY_C:
+            // 切换配色方案
+            currentColorScheme = (currentColorScheme + 1) % numColorSchemes;
+            if (currentOrnament >= 0) applyOrnamentToMesh();
+            std::cout << "[配色] " << colorSchemes[currentColorScheme].name << std::endl;
+            break;
+        case GLFW_KEY_T:
+            // 流光溢彩模式
+            renderMode = 4;
+            currentPattern = RenderPattern::Iridescent;
+            renderer.setRenderMode(RenderMode::PatternPreview);
+            renderer.setPattern(currentPattern);
+            if (userPhotoLoaded) renderer.setPatternTexture(texUserPhoto);
+            std::cout << "[模式] 流光溢彩（虹彩/珠光效果）" << std::endl;
+            break;
+        case GLFW_KEY_P:
+            // 导入外部图片
+            {
+                std::cout << "\n[导入图片] 请输入图片路径（支持 PNG/JPG/BMP/TGA）：" << std::endl;
+                std::cout << "  > ";
+                std::string imgPath;
+                std::cin >> imgPath;
+                // 去除可能的引号
+                if (!imgPath.empty() && imgPath.front() == '"') imgPath.erase(0, 1);
+                if (!imgPath.empty() && imgPath.back() == '"') imgPath.pop_back();
+                if (texUserPhoto.loadFromFile(imgPath)) {
+                    userPhotoLoaded = true;
+                    // 自动切换到照片模式显示导入的图片
+                    renderMode = 4;
+                    currentPattern = RenderPattern::Photo;
+                    renderer.setRenderMode(RenderMode::PatternPreview);
+                    renderer.setPattern(currentPattern);
+                    renderer.setPatternTexture(texUserPhoto);
+                    std::cout << "[导入图片] 成功！已切换到照片模式显示" << std::endl;
+                    std::cout << "  按 T 切换流光溢彩叠加效果" << std::endl;
+                    std::cout << "  按 6 切换回内置测试头像" << std::endl;
+                } else {
+                    std::cout << "[导入图片] 失败！请检查路径是否正确" << std::endl;
+                }
+            }
             break;
         case GLFW_KEY_UP:
             if (renderMode == 2) {
@@ -328,6 +699,18 @@ void runNailPrintPipeline() {
     std::cout << "  键盘 7: 图案预览 — 卡通风格" << std::endl;
     std::cout << "  键盘 8: 图案预览 — 纯色块" << std::endl;
     std::cout << "  键盘 9: 图案预览 — 文字图案" << std::endl;
+    std::cout << "  键盘 T: 流光溢彩（虹彩/珠光效果）" << std::endl;
+    std::cout << "  键盘 P: 导入外部图片（PNG/JPG/BMP）" << std::endl;
+    std::cout << "  键盘 R: 增加浮雕高度 (+0.2mm)" << std::endl;
+    std::cout << "  键盘 F: 减少浮雕高度 (-0.2mm)" << std::endl;
+    std::cout << "  键盘 0: 重置浮雕（平面）" << std::endl;
+    std::cout << "  --- 3D立体装饰物 ---" << std::endl;
+    std::cout << "  F1: 小蜘蛛    F2: 立体花朵  F3: 五角星" << std::endl;
+    std::cout << "  F4: 蝴蝶      F5: 爱心      F6: 蝴蝶结" << std::endl;
+    std::cout << "  F7: 小皇冠    F8: 宝石      F9: 移除装饰物" << std::endl;
+    std::cout << "  F10: 实体渲染模式（查看3D装饰物）" << std::endl;
+    std::cout << "  [ ]: 调整装饰物大小  I/J/K/L: 移动位置  O: 旋转" << std::endl;
+    std::cout << "  C: 切换配色方案（鲜艳/马卡龙/宝石/糖果）" << std::endl;
     std::cout << "  ESC: 退出" << std::endl;
 }
 
@@ -399,6 +782,8 @@ int main() {
     }
 
     // 上传网格
+    originalMesh = currentMesh;  // 保存原始网格用于位移映射
+    nailBaseMesh = currentMesh;  // 保存纯甲片网格用于装饰物放置
     glMesh.upload(currentMesh);
     camera.setAspect(1280.0f / 720.0f);
 
@@ -439,6 +824,7 @@ int main() {
     texPortrait.destroy();
     texGeometric.destroy();
     texText.destroy();
+    texUserPhoto.destroy();
     glfwTerminate();
     return 0;
 }

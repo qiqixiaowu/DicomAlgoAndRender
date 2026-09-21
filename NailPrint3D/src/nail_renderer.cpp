@@ -4,6 +4,8 @@
  */
 
 #include "nail_renderer.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
@@ -565,6 +567,9 @@ void NailMeshRenderer::render(const GLNailMesh& mesh, const RenderCamera& camera
     shader_.setInt("uPatternMode", 0);
     shader_.setInt("uTextureEnabled", 0);
     shader_.setFloat("uOpacity", 1.0f);
+    shader_.setFloat("uReliefHeight", 0.0f);
+    shader_.setFloat("uIridescenceIntensity", 0.0f);
+    shader_.setFloat("uTime", (float)glfwGetTime());
 
     if (wireframe_)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -601,6 +606,9 @@ void NailMeshRenderer::renderWithTexture(const GLNailMesh& mesh, const RenderCam
     shader_.setFloat("uTexRotation", texXform.rotation);
     shader_.setFloat("uOpacity", texXform.opacity);
     shader_.setInt("uBlendMode", texXform.blendMode);
+    shader_.setFloat("uReliefHeight", texXform.reliefHeight);
+    shader_.setFloat("uIridescenceIntensity", (int)pattern == 5 ? 1.0f : 0.0f);
+    shader_.setFloat("uTime", (float)glfwGetTime());
 
     if (wireframe_)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
