@@ -21,6 +21,8 @@ uniform int   uBlendMode;        // 0=正常, 1=正片叠底, 2=滤色, 3=覆盖
 uniform float uReliefHeight;     // 3D浮雕高度（视差映射用）
 uniform float uIridescenceIntensity; // 流光溢彩强度 (0=关, 1=最强)
 uniform float uTime;             // 动画时间（流光流动）
+uniform float uUVAspect;         // UV纵横比校正系数
+uniform int   uUVCorrectMode;    // UV校正模式: 0=不校正, 1=纵横比, 2=宽边校正
 
 out vec4 FragColor;
 
@@ -36,6 +38,35 @@ vec2 transformUV(vec2 uv) {
     t += vec2(0.5);
     t += vec2(uTexOffsetX, uTexOffsetY);
     return t;
+}
+
+// ============================================================
+// UV 变形校正：补偿甲片形状导致的图片拉伸
+// mode 0: 不校正
+// mode 1: 纵横比校正 — 按uUVAspect缩放UV，保持图片原始比例
+// mode 2: 宽边校正 — 指尖收窄时，按v值动态补偿横向UV，
+//         使图片在收窄区域不被横向挤压
+// ============================================================
+vec2 correctUV(vec2 uv) {
+    if (uUVCorrectMode == 0) return uv;
+
+    vec2 t = uv - vec2(0.5);
+
+    if (uUVCorrectMode == 1) {
+        // 纵横比校正：简单缩放
+        t.x *= uUVAspect;
+    } else if (uUVCorrectMode == 2) {
+        // 宽边校正：指尖(v→1)收窄，横向UV需要拉伸补偿
+        // widthScale(v) = 1 - 0.3*v^2  （与网格生成一致）
+        // 补偿因子 = 1 / widthScale
+        float v = clamp(uv.y, 0.0, 1.0);
+        float widthScale = 1.0 - 0.3 * v * v;
+        t.x /= max(widthScale, 0.01);
+        // 同时做轻微纵横比校正
+        t.x *= mix(1.0, uUVAspect, 0.5);
+    }
+
+    return t + vec2(0.5);
 }
 
 // ============================================================
@@ -240,10 +271,10 @@ void main() {
     // === 视差映射：如果有纹理且有浮雕高度，偏移UV ===
     vec2 effectiveUV = vUV;
     if (uTextureEnabled == 1 && uReliefHeight > 0.001) {
-        vec2 texUV = transformUV(vUV);
+        vec2 texUV = transformUV(correctUV(vUV));
         effectiveUV = transformUV(parallaxMapping(texUV, viewDir));
     } else if (uTextureEnabled == 1) {
-        effectiveUV = transformUV(vUV);
+        effectiveUV = transformUV(correctUV(vUV));
     }
 
     // === 法线扰动：从高度图生成凹凸法线 ===

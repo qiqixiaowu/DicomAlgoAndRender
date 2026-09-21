@@ -398,6 +398,24 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             }
             std::cout << "[浮雕] 已重置为平面" << std::endl;
             break;
+        case GLFW_KEY_U:
+            // 切换UV变形校正模式
+            {
+                TextureTransform t = renderer.getTexTransform();
+                t.uvCorrectMode = (t.uvCorrectMode + 1) % 3;
+                if (t.uvCorrectMode == 1) {
+                    t.uvAspect = 0.75f;  // 横向压缩，补偿甲片纵横比
+                    std::cout << "[UV校正] 模式1: 纵横比校正 (aspect=" << t.uvAspect << ")" << std::endl;
+                } else if (t.uvCorrectMode == 2) {
+                    t.uvAspect = 0.85f;  // 轻微纵横比 + 指尖收窄补偿
+                    std::cout << "[UV校正] 模式2: 宽边校正（补偿指尖收窄）" << std::endl;
+                } else {
+                    t.uvAspect = 1.0f;
+                    std::cout << "[UV校正] 模式0: 不校正" << std::endl;
+                }
+                renderer.setTextureTransform(t);
+            }
+            break;
         // === 3D立体装饰物 ===
         // F1~F8 选择装饰物类型
         case GLFW_KEY_F1:
@@ -701,6 +719,7 @@ void runNailPrintPipeline() {
     std::cout << "  键盘 9: 图案预览 — 文字图案" << std::endl;
     std::cout << "  键盘 T: 流光溢彩（虹彩/珠光效果）" << std::endl;
     std::cout << "  键盘 P: 导入外部图片（PNG/JPG/BMP）" << std::endl;
+    std::cout << "  键盘 U: 切换UV变形校正（不校正/纵横比/宽边校正）" << std::endl;
     std::cout << "  键盘 R: 增加浮雕高度 (+0.2mm)" << std::endl;
     std::cout << "  键盘 F: 减少浮雕高度 (-0.2mm)" << std::endl;
     std::cout << "  键盘 0: 重置浮雕（平面）" << std::endl;

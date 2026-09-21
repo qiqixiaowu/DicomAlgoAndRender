@@ -570,6 +570,8 @@ void NailMeshRenderer::render(const GLNailMesh& mesh, const RenderCamera& camera
     shader_.setFloat("uReliefHeight", 0.0f);
     shader_.setFloat("uIridescenceIntensity", 0.0f);
     shader_.setFloat("uTime", (float)glfwGetTime());
+    shader_.setFloat("uUVAspect", 1.0f);
+    shader_.setInt("uUVCorrectMode", 0);
 
     if (wireframe_)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -609,6 +611,8 @@ void NailMeshRenderer::renderWithTexture(const GLNailMesh& mesh, const RenderCam
     shader_.setFloat("uReliefHeight", texXform.reliefHeight);
     shader_.setFloat("uIridescenceIntensity", (int)pattern == 5 ? 1.0f : 0.0f);
     shader_.setFloat("uTime", (float)glfwGetTime());
+    shader_.setFloat("uUVAspect", texXform.uvAspect);
+    shader_.setInt("uUVCorrectMode", texXform.uvCorrectMode);
 
     if (wireframe_)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

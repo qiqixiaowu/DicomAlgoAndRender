@@ -154,6 +154,8 @@ struct TextureTransform {
     float opacity = 1.0f;   ///< 图案不透明度
     int   blendMode = 0;    ///< 混合模式: 0=正常, 1=正片叠底, 2=滤色, 3=覆盖
     float reliefHeight = 0.0f; ///< 3D浮雕高度（0=平面, >0=凸起）
+    float uvAspect = 1.0f;  ///< UV纵横比校正（1=不校正, <1=横向压缩, >1=纵向压缩）
+    int   uvCorrectMode = 0; ///< UV校正模式: 0=不校正, 1=纵横比校正, 2=宽边校正(指尖收窄补偿)
 };
 
 /** @brief 三角面片（含法线 + 颜色属性） */
