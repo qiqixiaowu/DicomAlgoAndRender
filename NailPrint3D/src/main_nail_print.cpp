@@ -753,7 +753,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "NailPrint3D — 3D美甲打印系统", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "NailPrint3D", nullptr, nullptr);
     if (!window) {
         std::cerr << "无法创建窗口" << std::endl;
         glfwTerminate();
