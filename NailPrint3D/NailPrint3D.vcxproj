@@ -19,22 +19,66 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\nail_types.h" />
-    <ClInclude Include="include\stl_loader.h" />
-    <ClInclude Include="include\nail_reconstruction.h" />
-    <ClInclude Include="include\nail_slicer.h" />
-    <ClInclude Include="include\nail_color.h" />
-    <ClInclude Include="include\nail_gcode.h" />
-    <ClInclude Include="include\nail_renderer.h" />
+    <!-- core/ -->
+    <ClInclude Include="include\core\color_types.h" />
+    <ClInclude Include="include\core\geometry.h" />
+    <ClInclude Include="include\core\render_types.h" />
+    <ClInclude Include="include\core\print_types.h" />
+    <ClInclude Include="include\core\nail_core.h" />
+    <!-- mesh/ -->
+    <ClInclude Include="include\mesh\mesh_io.h" />
+    <ClInclude Include="include\mesh\nail_generator.h" />
+    <ClInclude Include="include\mesh\ornament.h" />
+    <!-- slicing/ -->
+    <ClInclude Include="include\slicing\slicer.h" />
+    <!-- color/ -->
+    <ClInclude Include="include\color\color_manager.h" />
+    <ClInclude Include="include\color\voxel_color.h" />
+    <!-- reconstruction/ -->
+    <ClInclude Include="include\reconstruction\reconstruction.h" />
+    <ClInclude Include="include\reconstruction\voxelizer.h" />
+    <!-- print/ -->
+    <ClInclude Include="include\print\gcode_gen.h" />
+    <!-- render/ -->
+    <ClInclude Include="include\render\camera.h" />
+    <ClInclude Include="include\render\shader.h" />
+    <ClInclude Include="include\render\texture.h" />
+    <ClInclude Include="include\render\mesh_buffer.h" />
+    <ClInclude Include="include\render\opengl\gl_renderer.h" />
+    <!-- app/ -->
+    <ClInclude Include="include\app\ui_help.h" />
+    <ClInclude Include="include\app\scene.h" />
+    <ClInclude Include="include\app\print_pipeline.h" />
+    <ClInclude Include="include\app\input_manager.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\stl_loader.cpp" />
-    <ClCompile Include="src\nail_reconstruction.cpp" />
-    <ClCompile Include="src\nail_slicer.cpp" />
-    <ClCompile Include="src\nail_color.cpp" />
-    <ClCompile Include="src\nail_gcode.cpp" />
-    <ClCompile Include="src\nail_renderer.cpp" />
-    <ClCompile Include="src\main_nail_print.cpp" />
+    <!-- mesh/ -->
+    <ClCompile Include="src\mesh\mesh_io.cpp" />
+    <ClCompile Include="src\mesh\nail_generator.cpp" />
+    <ClCompile Include="src\mesh\ornament.cpp" />
+    <!-- slicing/ -->
+    <ClCompile Include="src\slicing\slicer.cpp" />
+    <!-- color/ -->
+    <ClCompile Include="src\color\color_manager.cpp" />
+    <ClCompile Include="src\color\voxel_color.cpp" />
+    <!-- reconstruction/ -->
+    <ClCompile Include="src\reconstruction\reconstruction.cpp" />
+    <ClCompile Include="src\reconstruction\voxelizer.cpp" />
+    <!-- print/ -->
+    <ClCompile Include="src\print\gcode_gen.cpp" />
+    <!-- render/ -->
+    <ClCompile Include="src\render\camera.cpp" />
+    <ClCompile Include="src\render\shader.cpp" />
+    <ClCompile Include="src\render\texture.cpp" />
+    <ClCompile Include="src\render\mesh_buffer.cpp" />
+    <ClCompile Include="src\render\opengl\gl_renderer.cpp" />
+    <!-- app/ -->
+    <ClCompile Include="src\app\ui_help.cpp" />
+    <ClCompile Include="src\app\scene.cpp" />
+    <ClCompile Include="src\app\print_pipeline.cpp" />
+    <ClCompile Include="src\app\input_manager.cpp" />
+    <ClCompile Include="src\app\main.cpp" />
+    <!-- glad -->
     <ClCompile Include="..\src\glad.c" />
   </ItemGroup>
   <ItemGroup>
@@ -122,7 +166,8 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>      <AdditionalIncludeDirectories>include;E:\glfw\Includes;E:\glad\include;E:\All\stb\stb;E:\All\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>      <AdditionalIncludeDirectories>include;E:\glfw\Includes;E:\glad\include;E:\All\stb\stb;E:\All\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>include;E:\glfw\Includes;E:\glad\include;E:\All\stb\stb;E:\All\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -141,6 +186,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>include;E:\glfw\Includes;E:\glad\include;E:\All\stb\stb;E:\All\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -150,6 +196,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y /I /E "$(ProjectDir)shaders" "$(OutDir)shaders"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -158,7 +207,8 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>      <AdditionalIncludeDirectories>include;E:\glfw\Includes;E:\glad\include;E:\All\stb\stb;E:\All\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>      <AdditionalIncludeDirectories>include;E:\glfw\Includes;E:\glad\include;E:\All\stb\stb;E:\All\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>include;E:\glfw\Includes;E:\glad\include;E:\All\stb\stb;E:\All\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -180,6 +230,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>include;E:\glfw\Includes;E:\glad\include;E:\All\stb\stb;E:\All\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
