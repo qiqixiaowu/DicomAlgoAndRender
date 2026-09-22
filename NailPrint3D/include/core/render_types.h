@@ -42,7 +42,8 @@ enum class RenderMode {
     Normal,         ///< 法线渲染
     SlicePreview,   ///< 切片预览
     ColorPreview,   ///< 颜色预览
-    PatternPreview  ///< 图案预览
+    PatternPreview, ///< 图案预览
+    PrintPreview    ///< 打印预览（按层数着色 + 阶梯效应）
 };
 
 } // namespace NailPrint3D

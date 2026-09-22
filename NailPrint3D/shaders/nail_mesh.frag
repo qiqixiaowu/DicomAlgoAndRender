@@ -73,29 +73,40 @@ vec2 correctUV(vec2 uv) {
 // 程序化纹理：在UV空间生成装饰图案
 // ============================================================
 vec3 proceduralPattern(vec2 uv) {
-    // 底色渐变：从根部到指尖
-    vec3 baseGrad = mix(
-        vec3(0.95, 0.80, 0.85),  // 根部浅粉
-        vec3(0.88, 0.65, 0.78),  // 指尖深粉
-        uv.y
-    );
+    // 自然指甲底色：三段渐变（根部暖白 → 中部粉润 → 指尖略深）
+    vec3 rootColor = vec3(0.96, 0.88, 0.84);  // 根部：暖白偏肤色
+    vec3 midColor  = vec3(0.93, 0.79, 0.74);  // 中部：自然粉
+    vec3 tipColor  = vec3(0.89, 0.71, 0.67);  // 指尖：略深粉
 
-    // 光泽条纹（模拟指甲自然纹理）
-    float stripe = sin(uv.x * 60.0) * 0.5 + 0.5;
-    stripe = pow(stripe, 8.0) * 0.08;
+    vec3 baseGrad;
+    if (uv.y < 0.5) {
+        baseGrad = mix(rootColor, midColor, uv.y * 2.0);
+    } else {
+        baseGrad = mix(midColor, tipColor, (uv.y - 0.5) * 2.0);
+    }
 
-    // 月牙（指甲根部半月）
-    float lunulaDist = distance(vec2(uv.x * 0.8, uv.y + 0.15), vec2(0.4, 0.0));
-    float lunula = 1.0 - smoothstep(0.12, 0.18, lunulaDist);
+    // 极微弱的纵向纹理（指甲自然纹路）
+    float stripe = sin(uv.x * 80.0) * 0.5 + 0.5;
+    stripe = pow(stripe, 12.0) * 0.025;
 
-    // 指尖白色尖端
-    float tipDist = uv.y;
-    float tip = smoothstep(0.85, 1.0, tipDist) * 0.3;
+    // 月牙（lunula）— 柔和的椭圆形
+    float lunulaX = (uv.x - 0.5) * 1.2;
+    float lunulaY = uv.y + 0.06;
+    float lunulaDist = sqrt(lunulaX * lunulaX + lunulaY * lunulaY * 2.5);
+    float lunula = 1.0 - smoothstep(0.05, 0.12, lunulaDist);
+    lunula *= smoothstep(0.0, 0.02, uv.y);
+
+    // 指尖自由边缘（自然的白色尖端）
+    float tip = smoothstep(0.90, 0.99, uv.y);
+
+    // 微妙的颜色变化（血管透出的微红/微蓝）
+    float redness = sin(uv.x * 3.14) * 0.015;
 
     vec3 color = baseGrad;
     color += stripe;
-    color = mix(color, vec3(0.98, 0.95, 0.90), lunula * 0.4);
-    color = mix(color, vec3(0.95, 0.92, 0.95), tip);
+    color += vec3(redness, 0.0, -redness * 0.4);
+    color = mix(color, vec3(0.97, 0.93, 0.90), lunula * 0.3);
+    color = mix(color, vec3(0.94, 0.90, 0.87), tip * 0.45);
 
     return color;
 }
@@ -261,6 +272,18 @@ vec3 getNormalFromHeightMap(vec2 uv, vec3 baseNormal) {
 }
 
 // ============================================================
+// ACES 色调映射
+// ============================================================
+vec3 ACESFilm(vec3 x) {
+    float a = 2.51;
+    float b = 0.03;
+    float c = 2.43;
+    float d = 0.59;
+    float e = 0.14;
+    return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+}
+
+// ============================================================
 // 主函数
 // ============================================================
 void main() {
@@ -282,12 +305,35 @@ void main() {
         normal = getNormalFromHeightMap(effectiveUV, normal);
     }
 
-    // 基础光照计算（所有模式共用）
-    float ambient = 0.3;
-    float diff = max(dot(normal, lightDir), 0.0);
+    // === 改进的光照模型 ===
+    // Half-Lambert 漫反射：柔和的光照过渡
+    float NdotL = dot(normal, lightDir);
+    float halfLambert = NdotL * 0.5 + 0.5;
+    float diff = halfLambert * halfLambert;
+
+    // 填充光（冷色，模拟环境反射）
+    vec3 fillLightDir = normalize(vec3(-lightDir.x, lightDir.y * 0.3, -lightDir.z));
+    float fillDiff = max(dot(normal, fillLightDir), 0.0) * 0.3;
+
+    // 双层高光：甲油层(柔和) + 清漆层(锐利)
     vec3 halfDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(normal, halfDir), 0.0), 64.0);
-    float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 3.0);
+    float spec = pow(max(dot(normal, halfDir), 0.0), 32.0);
+    float specCoat = pow(max(dot(normal, halfDir), 0.0), 128.0);
+
+    // 菲涅尔（Schlick近似）
+    float NdotV = max(dot(normal, viewDir), 0.0);
+    float fresnel = mix(0.04, 1.0, pow(1.0 - NdotV, 4.0));
+
+    // 环境光（半球光照：天空色 + 地面色）
+    float ambient = 0.35;
+    vec3 ambientColor = mix(
+        vec3(0.75, 0.70, 0.68),
+        vec3(0.85, 0.88, 0.95),
+        normal.z * 0.5 + 0.5
+    ) * ambient;
+
+    // SSS 近似：阴影区域透出暖色
+    float sss = pow(1.0 - abs(NdotL), 2.0) * 0.15;
 
     // === 获取基础颜色 ===
     vec3 baseCol;
@@ -353,50 +399,58 @@ void main() {
     // === 根据模式调整光照 ===
     vec3 color;
 
+    // 通用光照颜色
+    vec3 warmLight = vec3(1.0, 0.96, 0.92);
+    vec3 coolLight = vec3(0.85, 0.90, 1.0);
+    vec3 specColor = vec3(1.0, 0.98, 0.95);
+
     if (uPatternMode == 3) {
-        // FlatColor：仅环境光 + 轻微高光
-        color = baseCol * (ambient + 0.2);
-        color += spec * 0.3 * vec3(1.0, 0.98, 0.95);
+        // FlatColor：环境光 + 轻微清漆高光
+        color = baseCol * (ambientColor + diff * 0.15 * warmLight);
+        color += specCoat * 0.3 * specColor;
 
     } else if (uPatternMode == 2) {
         // Cartoon：简化光照（3级量化）
-        float lightLevel = ambient + diff * 0.65;
-        lightLevel = floor(lightLevel * 3.0) / 3.0;  // 量化光照
+        float lightLevel = ambient + diff * 0.6;
+        lightLevel = floor(lightLevel * 3.0) / 3.0;
         color = baseCol * lightLevel;
-        color += spec * 0.4 * vec3(1.0, 0.98, 0.95);
+        color += specCoat * 0.4 * specColor;
 
     } else if (uPatternMode == 4) {
-        // Text：仅环境光，保持文字清晰
-        color = baseCol * (ambient + 0.4);
-        color += spec * 0.2 * vec3(1.0, 0.98, 0.95);
+        // Text：环境光为主，保持文字清晰
+        color = baseCol * (ambientColor + diff * 0.1 * warmLight);
+        color += specCoat * 0.2 * specColor;
 
     } else if (uPatternMode == 5) {
-        // Iridescent：流光溢彩专用光照
-        // 增强高光和菲涅尔，让虹彩更耀眼
-        color = baseCol * (ambient + diff * 0.4);
-        color += spec * 1.2 * vec3(1.0, 0.98, 0.95);
-        color += fresnel * 0.8 * baseCol;  // 菲涅尔用自身颜色，增强边缘虹彩
+        // Iridescent：流光溢彩 — 增强高光和菲涅尔
+        color = baseCol * (ambientColor + diff * 0.35 * warmLight);
+        color += (spec * 0.6 + specCoat * 0.8) * specColor;
+        color += fresnel * 0.6 * baseCol;
 
     } else if (uPatternMode == 1) {
-        // Photo：照片模式 — 高亮度，保留原图色彩
-        // 环境光提到0.8，漫反射满额，让图片明亮清晰
-        color = baseCol * (0.8 + diff * 0.3);
-        color += spec * 0.3 * vec3(1.0, 0.98, 0.95);
-        // 不加菲涅尔边缘色，避免图片偏色
+        // Photo：照片模式 — 明亮自然，带清漆高光
+        color = baseCol * (ambientColor * 1.5 + diff * 0.3 * warmLight);
+        color += specCoat * 0.3 * specColor;
+        color += fresnel * 0.08 * specColor;
 
     } else {
-        // Photo / Procedural：完整 Blinn-Phong
-        color = baseCol * (ambient + diff * 0.65);
-        color += spec * 0.6 * vec3(1.0, 0.98, 0.95);
-        color += fresnel * 0.4 * vec3(1.0, 0.7, 0.8);
+        // Procedural / 默认：完整自然光照
+        vec3 diffuse = baseCol * (diff * warmLight + fillDiff * coolLight);
+        vec3 ambientPart = baseCol * ambientColor;
+        vec3 specular = (spec * 0.4 + specCoat * 0.8) * specColor;
+        vec3 rim = fresnel * 0.25 * specColor;
+        vec3 sssColor = vec3(1.0, 0.75, 0.65) * sss * baseCol;
+
+        color = ambientPart + diffuse + specular + rim + sssColor;
     }
 
-    // 伽马校正：Photo模式用标准2.2→1.0转换避免过亮，其他模式用0.9微调
+    // 色调映射 (ACES) + sRGB 伽马校正
     if (uPatternMode == 1) {
-        color = pow(color, vec3(1.0));  // 线性输出，保留原图亮度
+        color = ACESFilm(color * 1.1);
     } else {
-        color = pow(color, vec3(0.9));
+        color = ACESFilm(color * 1.2);
     }
+    color = pow(color, vec3(1.0 / 2.2));
 
     FragColor = vec4(color, 1.0);
 }

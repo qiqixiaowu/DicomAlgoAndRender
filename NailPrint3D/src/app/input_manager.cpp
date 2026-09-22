@@ -136,6 +136,29 @@ void handleKey(GLFWwindow* window, int key, int /*action*/, Scene& s) {
             std::cout << "[模式] 图案预览 — 文字图案" << std::endl;
             break;
 
+        // --- 法线渲染模式 ---
+        case GLFW_KEY_N:
+            s.renderMode = RM_Normal;
+            s.renderer.setRenderMode(RenderMode::Normal);
+            std::cout << "[模式] 法线渲染（可视化法线方向 + 网格线）" << std::endl;
+            break;
+
+        // --- 打印预览模式 ---
+        case GLFW_KEY_M:
+            s.renderMode = RM_PrintPreview;
+            s.renderer.setRenderMode(RenderMode::PrintPreview);
+            // 传递打印配置
+            s.renderer.setPrintConfig(
+                s.printConfig.colorLayerHeight,
+                s.printConfig.baseThickness,
+                s.printConfig.colorCount);
+            s.renderer.setPalette(s.palette);
+            std::cout << "[模式] 打印预览（按层数着色 + 阶梯效应 + 色彩管理）" << std::endl;
+            std::cout << "  层高=" << s.printConfig.colorLayerHeight << "mm"
+                      << " 底胶=" << s.printConfig.baseThickness << "mm"
+                      << " 颜色数=" << s.printConfig.colorCount << std::endl;
+            break;
+
         // --- 浮雕高度 ---
         case GLFW_KEY_R:
             s.reliefHeight = std::min(s.reliefHeight + 0.2f, 3.0f);

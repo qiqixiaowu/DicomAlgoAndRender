@@ -27,7 +27,7 @@ public:
      */
     static Mesh generateNailPatch(float width, float length,
                                   float curvature, float thickness,
-                                  int segmentsU = 32, int segmentsV = 24);
+                                  int segmentsU = 64, int segmentsV = 48);
 
     /** @brief 生成带图案浮雕的美甲网格
      *  @param base 基础甲片网格

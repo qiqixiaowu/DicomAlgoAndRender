@@ -58,7 +58,7 @@ void NailMeshGenerator::buildVertexIndex(Mesh& mesh) {
                 // 保留三角形顶点颜色，无则默认美甲粉色
                 ColorRGBf c = tri.vcolor[i];
                 if (c.r == 0 && c.g == 0 && c.b == 0)
-                    c = ColorRGBf{0.9f, 0.75f, 0.8f};
+                    c = ColorRGBf{0.92f, 0.82f, 0.78f};
                 mesh.colors.push_back(c);
                 tri.idx[i] = idx;
             } else {
@@ -181,7 +181,7 @@ Mesh NailMeshGenerator::addReliefPattern(Mesh& base, int patternType, float patt
         float u = base.uvs[vi].u;
         float v = base.uvs[vi].v;
         float zOffset = 0.0f;
-        ColorRGBf color{0.9f, 0.75f, 0.8f};
+        ColorRGBf color{0.92f, 0.82f, 0.78f};
 
         if (patternType == 0) {
             // === 花朵图案 ===
@@ -193,7 +193,7 @@ Mesh NailMeshGenerator::addReliefPattern(Mesh& base, int patternType, float patt
             if (dist < petalR + 0.03f) {
                 float t = dist / (petalR + 0.03f);
                 zOffset = patternHeight * (1.0f - t) * 0.8f;
-                color = ColorRGBf{1.0f - t * 0.3f, 0.3f + t * 0.3f, 0.5f + t * 0.2f};
+                color = ColorRGBf{0.95f - t * 0.15f, 0.55f + t * 0.2f, 0.62f + t * 0.15f};
             }
             for (int k = 0; k < 3; k++) {
                 float la = k * 2.0f * PI / 3.0f + PI / 6.0f;
@@ -202,13 +202,13 @@ Mesh NailMeshGenerator::addReliefPattern(Mesh& base, int patternType, float patt
                 float ld = std::sqrt((u - lx) * (u - lx) + (v - ly) * (v - ly));
                 if (ld < 0.06f) {
                     zOffset += patternHeight * 0.3f * (1.0f - ld / 0.06f);
-                    color = ColorRGBf{0.3f, 0.6f, 0.4f};
+                    color = ColorRGBf{0.45f, 0.65f, 0.50f};
                 }
             }
             float edgeDist = std::min(u, std::min(1.0f - u, std::min(v, 1.0f - v)));
             if (edgeDist < 0.05f) {
                 zOffset += patternHeight * 0.2f;
-                color = ColorRGBf{0.85f, 0.65f, 0.75f};
+                color = ColorRGBf{0.88f, 0.72f, 0.70f};
             }
         } else if (patternType == 1) {
             // === 几何菱格图案 ===
@@ -221,12 +221,12 @@ Mesh NailMeshGenerator::addReliefPattern(Mesh& base, int patternType, float patt
             if (diamond < 0.25f) {
                 zOffset = patternHeight * 0.6f;
                 int checker = ((int)std::floor(gu) + (int)std::floor(gv)) % 2;
-                color = checker ? ColorRGBf{0.9f, 0.5f, 0.6f} : ColorRGBf{0.5f, 0.7f, 0.9f};
+                color = checker ? ColorRGBf{0.88f, 0.60f, 0.65f} : ColorRGBf{0.60f, 0.72f, 0.82f};
             }
             float cdist = std::sqrt((u - 0.5f) * (u - 0.5f) + (v - 0.4f) * (v - 0.4f));
             if (cdist < 0.12f) {
                 zOffset = patternHeight * (1.0f - cdist / 0.12f);
-                color = ColorRGBf{1.0f, 0.85f, 0.3f};
+                color = ColorRGBf{0.95f, 0.82f, 0.45f};
             }
         } else if (patternType == 2) {
             // === 星空图案 ===
@@ -238,12 +238,12 @@ Mesh NailMeshGenerator::addReliefPattern(Mesh& base, int patternType, float patt
                 if (sd < 0.04f) {
                     float t = sd / 0.04f;
                     zOffset = std::max(zOffset, patternHeight * (1.0f - t));
-                    color = ColorRGBf{1.0f, 0.95f, 0.6f};
+                    color = ColorRGBf{0.95f, 0.90f, 0.65f};
                 }
             }
-            color.r = 0.2f + u * 0.3f;
-            color.g = 0.15f + v * 0.25f;
-            color.b = 0.4f + (1.0f - u) * 0.3f;
+            color.r = 0.35f + u * 0.25f;
+            color.g = 0.30f + v * 0.20f;
+            color.b = 0.50f + (1.0f - u) * 0.25f;
         }
 
         base.vertices[vi].z += zOffset;

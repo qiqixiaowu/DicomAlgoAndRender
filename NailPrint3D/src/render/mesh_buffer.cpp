@@ -32,7 +32,7 @@ void GLNailMesh::upload(const Mesh& mesh) {
             vertices.push_back(mesh.colors[i].g);
             vertices.push_back(mesh.colors[i].b);
         } else {
-            vertices.push_back(0.9f); vertices.push_back(0.75f); vertices.push_back(0.8f);
+            vertices.push_back(0.92f); vertices.push_back(0.82f); vertices.push_back(0.78f);
         }
         if (i < mesh.uvs.size()) {
             vertices.push_back(mesh.uvs[i].u);

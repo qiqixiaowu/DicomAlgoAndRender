@@ -31,7 +31,7 @@ void NailMeshRenderer::render(const GLNailMesh& mesh, const RenderCamera& camera
     shader_.setMat4("uProjection", camera.getProjectionMatrix());
     shader_.setVec3("uLightDir", glm::normalize(lightDir));
     shader_.setVec3("uViewPos", camera.getPosition());
-    shader_.setVec4("uBaseColor", glm::vec4(0.85f, 0.75f, 0.8f, 1.0f));
+    shader_.setVec4("uBaseColor", glm::vec4(0.92f, 0.82f, 0.78f, 1.0f));
 
     shader_.setInt("uPatternMode", 0);
     shader_.setInt("uTextureEnabled", 0);
@@ -60,7 +60,7 @@ void NailMeshRenderer::renderWithTexture(const GLNailMesh& mesh, const RenderCam
     shader_.setMat4("uProjection", camera.getProjectionMatrix());
     shader_.setVec3("uLightDir", glm::normalize(lightDir));
     shader_.setVec3("uViewPos", camera.getPosition());
-    shader_.setVec4("uBaseColor", glm::vec4(0.85f, 0.75f, 0.8f, 1.0f));
+    shader_.setVec4("uBaseColor", glm::vec4(0.92f, 0.82f, 0.78f, 1.0f));
 
     texture.bind(0);
     shader_.setInt("uTexture", 0);
@@ -111,6 +111,20 @@ void SlicePreviewRenderer::render(const GLNailMesh& pathMesh, const RenderCamera
     shader_.setMat4("uView", camera.getViewMatrix());
     shader_.setMat4("uProjection", camera.getProjectionMatrix());
     shader_.setFloat("uCurrentLayer", (float)currentLayer);
+    // 打印配置默认值（与 PrintConfig 默认一致）
+    shader_.setFloat("uLayerHeight", 0.08f);
+    shader_.setFloat("uBaseThickness", 0.3f);
+    shader_.setInt("uColorCount", 4);
+    // 默认调色板
+    glm::vec3 defaultPalette[4] = {
+        glm::vec3(1.0f, 0.3f, 0.4f),
+        glm::vec3(0.9f, 0.6f, 0.2f),
+        glm::vec3(0.4f, 0.7f, 0.9f),
+        glm::vec3(0.6f, 0.3f, 0.8f)
+    };
+    for (int i = 0; i < 4; i++) {
+        shader_.setVec3("uPalette[" + std::to_string(i) + "]", defaultPalette[i]);
+    }
     pathMesh.draw();
 }
 
@@ -142,6 +156,75 @@ void ColorPreviewRenderer::render(const GLNailMesh& mesh, const RenderCamera& ca
     }
     shader_.setInt("uPaletteSize", (int)palette.size());
 
+    // 打印配置 — 统一色彩管理
+    shader_.setFloat("uLayerHeight", 0.08f);
+    shader_.setFloat("uBaseThickness", 0.3f);
+    shader_.setInt("uColorCount", (int)palette.size());
+
+    mesh.drawTriangles();
+}
+
+// ============================================================
+// NormalRenderer
+// ============================================================
+
+NormalRenderer::NormalRenderer() {}
+
+NormalRenderer::~NormalRenderer() {}
+
+bool NormalRenderer::init(const std::string& shaderDir) {
+    bool ok = shader_.loadFromFiles(shaderDir + "/nail_normal.vert",
+                                     shaderDir + "/nail_normal.frag");
+    if (!ok) std::cerr << "[Renderer] 无法加载法线着色器" << std::endl;
+    return ok;
+}
+
+void NormalRenderer::render(const GLNailMesh& mesh, const RenderCamera& camera) {
+    shader_.use();
+    shader_.setMat4("uModel", glm::mat4(1.0f));
+    shader_.setMat4("uView", camera.getViewMatrix());
+    shader_.setMat4("uProjection", camera.getProjectionMatrix());
+    mesh.drawTriangles();
+}
+
+// ============================================================
+// PrintPreviewRenderer
+// ============================================================
+
+PrintPreviewRenderer::PrintPreviewRenderer() {}
+
+PrintPreviewRenderer::~PrintPreviewRenderer() {}
+
+bool PrintPreviewRenderer::init(const std::string& shaderDir) {
+    bool ok = shader_.loadFromFiles(shaderDir + "/nail_print_preview.vert",
+                                     shaderDir + "/nail_print_preview.frag");
+    if (!ok) std::cerr << "[Renderer] 无法加载打印预览着色器" << std::endl;
+    return ok;
+}
+
+void PrintPreviewRenderer::render(const GLNailMesh& mesh, const RenderCamera& camera,
+                                    const glm::vec3& lightDir,
+                                    const std::vector<ColorRGBf>& palette,
+                                    float layerHeight, float baseThickness,
+                                    int colorCount) {
+    shader_.use();
+    shader_.setMat4("uModel", glm::mat4(1.0f));
+    shader_.setMat4("uView", camera.getViewMatrix());
+    shader_.setMat4("uProjection", camera.getProjectionMatrix());
+    shader_.setVec3("uLightDir", glm::normalize(lightDir));
+
+    shader_.setFloat("uLayerHeight", layerHeight);
+    shader_.setFloat("uBaseThickness", baseThickness);
+    shader_.setFloat("uTopCoatThickness", 0.1f);
+    shader_.setInt("uBaseLayers", 1);
+    shader_.setInt("uTopCoatLayers", 1);
+    shader_.setInt("uColorCount", colorCount);
+
+    for (int i = 0; i < (int)palette.size() && i < 16; i++) {
+        shader_.setVec3("uPalette[" + std::to_string(i) + "]",
+                         glm::vec3(palette[i].r, palette[i].g, palette[i].b));
+    }
+
     mesh.drawTriangles();
 }
 
@@ -162,7 +245,9 @@ bool NailRenderer::init(const std::string& shaderDir) {
     bool ok1 = meshRenderer_.init(shaderDir);
     bool ok2 = sliceRenderer_.init(shaderDir);
     bool ok3 = colorRenderer_.init(shaderDir);
-    return ok1 && ok2 && ok3;
+    bool ok4 = normalRenderer_.init(shaderDir);
+    bool ok5 = printPreviewRenderer_.init(shaderDir);
+    return ok1 && ok2 && ok3 && ok4 && ok5;
 }
 
 void NailRenderer::render(const GLNailMesh& mesh, const RenderCamera& camera) {
@@ -180,13 +265,20 @@ void NailRenderer::render(const GLNailMesh& mesh, const RenderCamera& camera) {
             meshRenderer_.setWireframe(false);
             break;
         case RenderMode::Normal:
-            meshRenderer_.render(mesh, camera, lightDir_);
+            normalRenderer_.render(mesh, camera);
             break;
         case RenderMode::SlicePreview:
             sliceRenderer_.render(mesh, camera, currentLayer_);
             break;
         case RenderMode::ColorPreview:
             colorRenderer_.render(mesh, camera, palette_);
+            break;
+        case RenderMode::PrintPreview:
+            printPreviewRenderer_.render(mesh, camera, lightDir_,
+                                          palette_,
+                                          printLayerHeight_,
+                                          printBaseThickness_,
+                                          printColorCount_);
             break;
         case RenderMode::PatternPreview:
             meshRenderer_.renderWithTexture(mesh, camera, lightDir_,

@@ -96,6 +96,46 @@ private:
 };
 
 // ============================================================
+// 法线渲染器
+// ============================================================
+
+/** @brief 法线渲染器（可视化法线方向 + 网格线 + 边缘高亮） */
+class NormalRenderer {
+public:
+    NormalRenderer();
+    ~NormalRenderer();
+
+    bool init(const std::string& shaderDir);
+
+    void render(const GLNailMesh& mesh, const RenderCamera& camera);
+
+private:
+    NailShader shader_;
+};
+
+// ============================================================
+// 打印预览渲染器
+// ============================================================
+
+/** @brief 打印预览渲染器（按层数着色 + 阶梯效应 + 统一色彩管理） */
+class PrintPreviewRenderer {
+public:
+    PrintPreviewRenderer();
+    ~PrintPreviewRenderer();
+
+    bool init(const std::string& shaderDir);
+
+    void render(const GLNailMesh& mesh, const RenderCamera& camera,
+                const glm::vec3& lightDir,
+                const std::vector<ColorRGBf>& palette,
+                float layerHeight, float baseThickness,
+                int colorCount);
+
+private:
+    NailShader shader_;
+};
+
+// ============================================================
 // 主渲染器（集成）
 // ============================================================
 
@@ -119,6 +159,13 @@ public:
     void setTextureTransform(const TextureTransform& t) { texXform_ = t; }
     TextureTransform getTexTransform() const { return texXform_; }
 
+    // 打印预览配置
+    void setPrintConfig(float layerHeight, float baseThickness, int colorCount) {
+        printLayerHeight_ = layerHeight;
+        printBaseThickness_ = baseThickness;
+        printColorCount_ = colorCount;
+    }
+
     RenderPattern getPattern() const { return pattern_; }
     RenderMode getRenderMode() const { return mode_; }
 
@@ -126,6 +173,8 @@ private:
     NailMeshRenderer meshRenderer_;
     SlicePreviewRenderer sliceRenderer_;
     ColorPreviewRenderer colorRenderer_;
+    NormalRenderer normalRenderer_;
+    PrintPreviewRenderer printPreviewRenderer_;
 
     RenderMode mode_ = RenderMode::Solid;
     std::string shaderDir_;
@@ -136,6 +185,11 @@ private:
     GLTexture patternTexture_;
     RenderPattern pattern_ = RenderPattern::Procedural;
     TextureTransform texXform_;
+
+    // 打印预览参数
+    float printLayerHeight_ = 0.08f;
+    float printBaseThickness_ = 0.3f;
+    int printColorCount_ = 1;
 };
 
 } // namespace NailPrint3D

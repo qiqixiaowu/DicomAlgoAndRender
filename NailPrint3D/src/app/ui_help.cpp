@@ -66,6 +66,8 @@ void printHelpText() {
     std::cout << "  键盘 7: 图案预览 — 卡通风格" << std::endl;
     std::cout << "  键盘 8: 图案预览 — 纯色块" << std::endl;
     std::cout << "  键盘 9: 图案预览 — 文字图案" << std::endl;
+    std::cout << "  键盘 N: 法线渲染（可视化法线方向 + 网格线）" << std::endl;
+    std::cout << "  键盘 M: 打印预览（按层数着色 + 阶梯效应 + 色彩管理）" << std::endl;
     std::cout << "  键盘 T: 流光溢彩（虹彩/珠光效果）" << std::endl;
     std::cout << "  键盘 P: 导入外部图片（PNG/JPG/BMP）" << std::endl;
     std::cout << "  键盘 U: 切换UV变形校正（不校正/纵横比/宽边校正）" << std::endl;

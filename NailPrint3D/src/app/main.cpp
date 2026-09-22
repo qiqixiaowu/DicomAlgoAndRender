@@ -46,6 +46,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_SAMPLES, 4);  // 4x MSAA 抗锯齿
 
     GLFWwindow* window = glfwCreateWindow(1280, 720, "NailPrint3D — 3D美甲打印系统", nullptr, nullptr);
     if (!window) {
@@ -64,6 +65,7 @@ int main() {
     }
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE);  // 启用 MSAA 抗锯齿
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

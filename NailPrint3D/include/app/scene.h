@@ -31,7 +31,9 @@ enum RenderModeIndex {
     RM_Wireframe = 1,
     RM_Slice = 2,
     RM_Color = 3,
-    RM_Pattern = 4
+    RM_Pattern = 4,
+    RM_Normal = 5,
+    RM_PrintPreview = 6
 };
 
 /// 场景状态
