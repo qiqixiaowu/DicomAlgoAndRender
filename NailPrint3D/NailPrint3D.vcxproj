@@ -55,6 +55,7 @@
     <!-- mesh/ -->
     <ClCompile Include="src\mesh\mesh_io.cpp" />
     <ClCompile Include="src\mesh\nail_generator.cpp" />
+    <ClCompile Include="src\mesh\hand_generator.cpp" />
     <ClCompile Include="src\mesh\ornament.cpp" />
     <!-- slicing/ -->
     <ClCompile Include="src\slicing\slicer.cpp" />

@@ -48,7 +48,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);  // 4x MSAA 抗锯齿
 
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "NailPrint3D — 3D美甲打印系统", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "NailPrint3D", nullptr, nullptr);
     if (!window) {
         std::cerr << "无法创建窗口" << std::endl;
         glfwTerminate();
@@ -135,6 +135,7 @@ int main() {
     // 清理
     scene.glMesh.destroy();
     scene.glSliceMesh.destroy();
+    scene.glHandMesh.destroy();
     scene.texCartoon.destroy();
     scene.texPortrait.destroy();
     scene.texGeometric.destroy();

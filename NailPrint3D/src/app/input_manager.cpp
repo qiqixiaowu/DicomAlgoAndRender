@@ -6,6 +6,7 @@
 #include "app/input_manager.h"
 #include "app/print_pipeline.h"
 #include "app/ui_help.h"
+#include "mesh/hand_generator.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -332,6 +333,63 @@ void handleKey(GLFWwindow* window, int key, int /*action*/, Scene& s) {
                 std::cout << "[切片] 层 " << s.currentLayer << "/" << s.sliceLayers.size() << std::endl;
             }
             break;
+
+        // --- 手部渲染 ---
+        case GLFW_KEY_H: {
+            s.showHand = !s.showHand;
+            s.renderer.setShowHand(s.showHand);
+            if (s.showHand) {
+                // 生成手部网格并上传
+                s.handMesh = HandGenerator::generateHand(s.handScale);
+                s.glHandMesh.upload(s.handMesh);
+                s.renderer.setHandMesh(&s.glHandMesh);
+
+                // 计算指甲贴合变换
+                glm::mat4 nailTf = HandGenerator::getNailTransform(
+                    (FingerIndex)s.currentFinger, s.handScale);
+                s.renderer.setNailTransform(nailTf);
+
+                // 调整相机距离以看到完整手部
+                Vec3 center = s.handMesh.bbox.center();
+                float bboxSize = std::max(
+                    s.handMesh.bbox.max.x - s.handMesh.bbox.min.x,
+                    std::max(s.handMesh.bbox.max.y - s.handMesh.bbox.min.y,
+                             s.handMesh.bbox.max.z - s.handMesh.bbox.min.z));
+                s.camera.setTarget(glm::vec3(center.x, center.y, center.z));
+                s.camera.setDistance(bboxSize * 1.2f);
+
+                std::cout << "[手部] 已显示手部模型（皮肤着色 + 阴影）" << std::endl;
+                std::cout << "  手指: " << s.currentFinger << " (0=拇指 1=食指 2=中指 3=无名指 4=小指)" << std::endl;
+                std::cout << "  按 G 切换手指" << std::endl;
+            } else {
+                s.renderer.setHandMesh(nullptr);
+                // 恢复相机到指甲
+                Vec3 center = s.currentMesh.bbox.center();
+                float bboxSize = std::max(
+                    s.currentMesh.bbox.max.x - s.currentMesh.bbox.min.x,
+                    std::max(s.currentMesh.bbox.max.y - s.currentMesh.bbox.min.y,
+                             s.currentMesh.bbox.max.z - s.currentMesh.bbox.min.z));
+                s.camera.setTarget(glm::vec3(center.x, center.y, center.z));
+                s.camera.setDistance(bboxSize * 1.5f);
+                std::cout << "[手部] 已隐藏手部模型" << std::endl;
+            }
+            break;
+        }
+
+        // --- 切换手指 ---
+        case GLFW_KEY_G: {
+            if (s.showHand) {
+                s.currentFinger = (s.currentFinger + 1) % 5;
+                glm::mat4 nailTf = HandGenerator::getNailTransform(
+                    (FingerIndex)s.currentFinger, s.handScale);
+                s.renderer.setNailTransform(nailTf);
+                const char* fingerNames[] = {"拇指", "食指", "中指", "无名指", "小指"};
+                std::cout << "[手部] 切换到 " << fingerNames[s.currentFinger] << std::endl;
+            } else {
+                std::cout << "[手部] 请先按 H 显示手部" << std::endl;
+            }
+            break;
+        }
 
         case GLFW_KEY_ESCAPE:
             glfwSetWindowShouldClose(window, GLFW_TRUE);

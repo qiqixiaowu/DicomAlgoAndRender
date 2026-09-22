@@ -16,6 +16,7 @@
 #include "core/color_types.h"
 #include "mesh/mesh_io.h"
 #include "mesh/nail_generator.h"
+#include "mesh/hand_generator.h"
 #include "mesh/ornament.h"
 #include "slicing/slicer.h"
 #include "app/ui_help.h"
@@ -48,6 +49,13 @@ struct Scene {
     Mesh currentMesh;
     Mesh originalMesh;       // 位移映射前
     Mesh nailBaseMesh;       // 纯甲片（无装饰物）
+
+    // 手部
+    Mesh handMesh;
+    GLNailMesh glHandMesh;
+    bool showHand = false;
+    float handScale = 1.0f;  // 手部缩放（1.0=真实mm尺寸）
+    int currentFinger = 1;   // 当前指甲所在手指（默认食指）
 
     // 切片
     std::vector<SliceLayer> sliceLayers;

@@ -50,10 +50,12 @@ public:
                            RenderPattern pattern, const TextureTransform& texXform);
 
     void setWireframe(bool wireframe) { wireframe_ = wireframe; }
+    void setModelMatrix(const glm::mat4& m) { modelMatrix_ = m; }
 
 private:
     NailShader shader_;
     bool wireframe_ = false;
+    glm::mat4 modelMatrix_ = glm::mat4(1.0f);
 };
 
 // ============================================================
@@ -71,9 +73,12 @@ public:
     void render(const GLNailMesh& pathMesh, const RenderCamera& camera,
                 int currentLayer);
 
+    void setModelMatrix(const glm::mat4& m) { modelMatrix_ = m; }
+
 private:
     NailShader shader_;
     int currentLayer_ = 0;
+    glm::mat4 modelMatrix_ = glm::mat4(1.0f);
 };
 
 // ============================================================
@@ -91,8 +96,11 @@ public:
     void render(const GLNailMesh& mesh, const RenderCamera& camera,
                 const std::vector<ColorRGBf>& palette);
 
+    void setModelMatrix(const glm::mat4& m) { modelMatrix_ = m; }
+
 private:
     NailShader shader_;
+    glm::mat4 modelMatrix_ = glm::mat4(1.0f);
 };
 
 // ============================================================
@@ -109,8 +117,11 @@ public:
 
     void render(const GLNailMesh& mesh, const RenderCamera& camera);
 
+    void setModelMatrix(const glm::mat4& m) { modelMatrix_ = m; }
+
 private:
     NailShader shader_;
+    glm::mat4 modelMatrix_ = glm::mat4(1.0f);
 };
 
 // ============================================================
@@ -131,8 +142,56 @@ public:
                 float layerHeight, float baseThickness,
                 int colorCount);
 
+    void setModelMatrix(const glm::mat4& m) { modelMatrix_ = m; }
+
 private:
     NailShader shader_;
+    glm::mat4 modelMatrix_ = glm::mat4(1.0f);
+};
+
+// ============================================================
+// 皮肤渲染器
+// ============================================================
+
+/** @brief 皮肤渲染器（SSS + 透光 + 油性高光 + PCF阴影） */
+class SkinRenderer {
+public:
+    SkinRenderer();
+    ~SkinRenderer();
+
+    bool init(const std::string& shaderDir);
+
+    void render(const GLNailMesh& mesh, const RenderCamera& camera,
+                const glm::vec3& lightDir,
+                GLuint shadowMap, const glm::mat4& lightSpaceMatrix);
+
+    void setModelMatrix(const glm::mat4& m) { modelMatrix_ = m; }
+
+private:
+    NailShader shader_;
+    glm::mat4 modelMatrix_ = glm::mat4(1.0f);
+};
+
+// ============================================================
+// 阴影深度渲染器
+// ============================================================
+
+/** @brief 阴影深度 Pass 渲染器（从光源视角渲染深度） */
+class ShadowRenderer {
+public:
+    ShadowRenderer();
+    ~ShadowRenderer();
+
+    bool init(const std::string& shaderDir);
+
+    /// 渲染深度到 shadow FBO
+    void renderDepth(const GLNailMesh& mesh, const glm::mat4& lightSpaceMatrix);
+
+    void setModelMatrix(const glm::mat4& m) { modelMatrix_ = m; }
+
+private:
+    NailShader shader_;
+    glm::mat4 modelMatrix_ = glm::mat4(1.0f);
 };
 
 // ============================================================
@@ -166,6 +225,12 @@ public:
         printColorCount_ = colorCount;
     }
 
+    // === 手部渲染 ===
+    void setHandMesh(const GLNailMesh* handMesh) { handMesh_ = handMesh; }
+    void setNailTransform(const glm::mat4& t) { nailTransform_ = t; }
+    void setShowHand(bool show) { showHand_ = show; }
+    bool getShowHand() const { return showHand_; }
+
     RenderPattern getPattern() const { return pattern_; }
     RenderMode getRenderMode() const { return mode_; }
 
@@ -175,6 +240,18 @@ private:
     ColorPreviewRenderer colorRenderer_;
     NormalRenderer normalRenderer_;
     PrintPreviewRenderer printPreviewRenderer_;
+    SkinRenderer skinRenderer_;
+    ShadowRenderer shadowRenderer_;
+
+    // 阴影 FBO
+    GLuint shadowFBO_ = 0;
+    GLuint shadowMap_ = 0;
+    int shadowMapSize_ = 2048;
+    glm::mat4 lightSpaceMatrix_ = glm::mat4(1.0f);
+
+    bool initShadowResources();
+    void renderShadowPass(const GLNailMesh& nailMesh);
+    glm::mat4 computeLightSpaceMatrix(const RenderCamera& camera);
 
     RenderMode mode_ = RenderMode::Solid;
     std::string shaderDir_;
@@ -190,6 +267,11 @@ private:
     float printLayerHeight_ = 0.08f;
     float printBaseThickness_ = 0.3f;
     int printColorCount_ = 1;
+
+    // 手部渲染
+    const GLNailMesh* handMesh_ = nullptr;
+    glm::mat4 nailTransform_ = glm::mat4(1.0f);
+    bool showHand_ = false;
 };
 
 } // namespace NailPrint3D

@@ -26,7 +26,7 @@ bool NailMeshRenderer::init(const std::string& shaderDir) {
 void NailMeshRenderer::render(const GLNailMesh& mesh, const RenderCamera& camera,
                                 const glm::vec3& lightDir) {
     shader_.use();
-    shader_.setMat4("uModel", glm::mat4(1.0f));
+    shader_.setMat4("uModel", modelMatrix_);
     shader_.setMat4("uView", camera.getViewMatrix());
     shader_.setMat4("uProjection", camera.getProjectionMatrix());
     shader_.setVec3("uLightDir", glm::normalize(lightDir));
@@ -55,7 +55,7 @@ void NailMeshRenderer::renderWithTexture(const GLNailMesh& mesh, const RenderCam
                                            const glm::vec3& lightDir, const GLTexture& texture,
                                            RenderPattern pattern, const TextureTransform& texXform) {
     shader_.use();
-    shader_.setMat4("uModel", glm::mat4(1.0f));
+    shader_.setMat4("uModel", modelMatrix_);
     shader_.setMat4("uView", camera.getViewMatrix());
     shader_.setMat4("uProjection", camera.getProjectionMatrix());
     shader_.setVec3("uLightDir", glm::normalize(lightDir));
@@ -107,7 +107,7 @@ void SlicePreviewRenderer::render(const GLNailMesh& pathMesh, const RenderCamera
                                     int currentLayer) {
     currentLayer_ = currentLayer;
     shader_.use();
-    shader_.setMat4("uModel", glm::mat4(1.0f));
+    shader_.setMat4("uModel", modelMatrix_);
     shader_.setMat4("uView", camera.getViewMatrix());
     shader_.setMat4("uProjection", camera.getProjectionMatrix());
     shader_.setFloat("uCurrentLayer", (float)currentLayer);
@@ -146,7 +146,7 @@ bool ColorPreviewRenderer::init(const std::string& shaderDir) {
 void ColorPreviewRenderer::render(const GLNailMesh& mesh, const RenderCamera& camera,
                                     const std::vector<ColorRGBf>& palette) {
     shader_.use();
-    shader_.setMat4("uModel", glm::mat4(1.0f));
+    shader_.setMat4("uModel", modelMatrix_);
     shader_.setMat4("uView", camera.getViewMatrix());
     shader_.setMat4("uProjection", camera.getProjectionMatrix());
 
@@ -181,7 +181,7 @@ bool NormalRenderer::init(const std::string& shaderDir) {
 
 void NormalRenderer::render(const GLNailMesh& mesh, const RenderCamera& camera) {
     shader_.use();
-    shader_.setMat4("uModel", glm::mat4(1.0f));
+    shader_.setMat4("uModel", modelMatrix_);
     shader_.setMat4("uView", camera.getViewMatrix());
     shader_.setMat4("uProjection", camera.getProjectionMatrix());
     mesh.drawTriangles();
@@ -208,7 +208,7 @@ void PrintPreviewRenderer::render(const GLNailMesh& mesh, const RenderCamera& ca
                                     float layerHeight, float baseThickness,
                                     int colorCount) {
     shader_.use();
-    shader_.setMat4("uModel", glm::mat4(1.0f));
+    shader_.setMat4("uModel", modelMatrix_);
     shader_.setMat4("uView", camera.getViewMatrix());
     shader_.setMat4("uProjection", camera.getProjectionMatrix());
     shader_.setVec3("uLightDir", glm::normalize(lightDir));
@@ -225,6 +225,63 @@ void PrintPreviewRenderer::render(const GLNailMesh& mesh, const RenderCamera& ca
                          glm::vec3(palette[i].r, palette[i].g, palette[i].b));
     }
 
+    mesh.drawTriangles();
+}
+
+// ============================================================
+// SkinRenderer
+// ============================================================
+
+SkinRenderer::SkinRenderer() {}
+
+SkinRenderer::~SkinRenderer() {}
+
+bool SkinRenderer::init(const std::string& shaderDir) {
+    bool ok = shader_.loadFromFiles(shaderDir + "/nail_skin.vert",
+                                     shaderDir + "/nail_skin.frag");
+    if (!ok) std::cerr << "[Renderer] 无法加载皮肤着色器" << std::endl;
+    return ok;
+}
+
+void SkinRenderer::render(const GLNailMesh& mesh, const RenderCamera& camera,
+                            const glm::vec3& lightDir,
+                            GLuint shadowMap, const glm::mat4& lightSpaceMatrix) {
+    shader_.use();
+    shader_.setMat4("uModel", modelMatrix_);
+    shader_.setMat4("uView", camera.getViewMatrix());
+    shader_.setMat4("uProjection", camera.getProjectionMatrix());
+    shader_.setVec3("uLightDir", glm::normalize(lightDir));
+    shader_.setVec3("uViewPos", camera.getPosition());
+    shader_.setMat4("uLightSpaceMatrix", lightSpaceMatrix);
+
+    // 绑定阴影贴图到纹理单元1
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, shadowMap);
+    shader_.setInt("uShadowMap", 1);
+
+    mesh.drawTriangles();
+}
+
+// ============================================================
+// ShadowRenderer
+// ============================================================
+
+ShadowRenderer::ShadowRenderer() {}
+
+ShadowRenderer::~ShadowRenderer() {}
+
+bool ShadowRenderer::init(const std::string& shaderDir) {
+    bool ok = shader_.loadFromFiles(shaderDir + "/nail_shadow.vert",
+                                     shaderDir + "/nail_shadow.frag");
+    if (!ok) std::cerr << "[Renderer] 无法加载阴影着色器" << std::endl;
+    return ok;
+}
+
+void ShadowRenderer::renderDepth(const GLNailMesh& mesh,
+                                   const glm::mat4& lightSpaceMatrix) {
+    shader_.use();
+    shader_.setMat4("uModel", modelMatrix_);
+    shader_.setMat4("uLightSpaceMatrix", lightSpaceMatrix);
     mesh.drawTriangles();
 }
 
@@ -247,13 +304,105 @@ bool NailRenderer::init(const std::string& shaderDir) {
     bool ok3 = colorRenderer_.init(shaderDir);
     bool ok4 = normalRenderer_.init(shaderDir);
     bool ok5 = printPreviewRenderer_.init(shaderDir);
-    return ok1 && ok2 && ok3 && ok4 && ok5;
+    bool ok6 = skinRenderer_.init(shaderDir);
+    bool ok7 = shadowRenderer_.init(shaderDir);
+    bool ok8 = initShadowResources();
+    return ok1 && ok2 && ok3 && ok4 && ok5 && ok6 && ok7 && ok8;
+}
+
+bool NailRenderer::initShadowResources() {
+    // 生成阴影 FBO + 深度纹理
+    glGenFramebuffers(1, &shadowFBO_);
+
+    glGenTextures(1, &shadowMap_);
+    glBindTexture(GL_TEXTURE_2D, shadowMap_);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+                 shadowMapSize_, shadowMapSize_, 0,
+                 GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO_);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                           GL_TEXTURE_2D, shadowMap_, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    return true;
+}
+
+glm::mat4 NailRenderer::computeLightSpaceMatrix(const RenderCamera& camera) {
+    // 光源位置：从光照方向反向延伸
+    glm::vec3 lightPos = -glm::normalize(lightDir_) * 60.0f;
+
+    // 光源看向场景中心（原点附近）
+    glm::mat4 lightView = glm::lookAt(lightPos,
+                                        glm::vec3(0.0f, 0.0f, 0.0f),
+                                        glm::vec3(0.0f, 1.0f, 0.0f));
+
+    // 正交投影：覆盖整个手部+指甲场景
+    float orthoSize = 60.0f;
+    glm::mat4 lightProj = glm::ortho(-orthoSize, orthoSize,
+                                       -orthoSize, orthoSize,
+                                       0.1f, 200.0f);
+
+    return lightProj * lightView;
+}
+
+void NailRenderer::renderShadowPass(const GLNailMesh& nailMesh) {
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO_);
+    glViewport(0, 0, shadowMapSize_, shadowMapSize_);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+
+    // 渲染手部深度
+    if (showHand_ && handMesh_) {
+        shadowRenderer_.setModelMatrix(glm::mat4(1.0f));
+        shadowRenderer_.renderDepth(*handMesh_, lightSpaceMatrix_);
+    }
+
+    // 渲染指甲深度
+    shadowRenderer_.setModelMatrix(nailTransform_);
+    shadowRenderer_.renderDepth(nailMesh, lightSpaceMatrix_);
+
+    // 恢复默认帧缓冲
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void NailRenderer::render(const GLNailMesh& mesh, const RenderCamera& camera) {
+    // === 阴影 Pass ===
+    if (showHand_ && handMesh_) {
+        lightSpaceMatrix_ = computeLightSpaceMatrix(camera);
+        renderShadowPass(mesh);
+    }
+
+    // 恢复视口到窗口大小
+    glViewport(0, 0, 1280, 720);
+
     glClearColor(0.15f, 0.15f, 0.18f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
+
+    // === 渲染手部（皮肤着色器 + 阴影） ===
+    if (showHand_ && handMesh_) {
+        skinRenderer_.setModelMatrix(glm::mat4(1.0f));
+        skinRenderer_.render(*handMesh_, camera, lightDir_,
+                              shadowMap_, lightSpaceMatrix_);
+    }
+
+    // === 渲染指甲 ===
+    // 手部模式下使用 nailTransform_ 变换指甲到手指上
+    glm::mat4 nailModel = showHand_ ? nailTransform_ : glm::mat4(1.0f);
+    meshRenderer_.setModelMatrix(nailModel);
+    sliceRenderer_.setModelMatrix(nailModel);
+    colorRenderer_.setModelMatrix(nailModel);
+    normalRenderer_.setModelMatrix(nailModel);
+    printPreviewRenderer_.setModelMatrix(nailModel);
 
     switch (mode_) {
         case RenderMode::Solid:
