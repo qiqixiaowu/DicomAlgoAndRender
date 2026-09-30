@@ -1,0 +1,1078 @@
+{
+  "descriptive": {
+    "total_studies": 74,
+    "year_range": "2024–2026",
+    "year_distribution": {
+      "2024": 11,
+      "2025": 56,
+      "2026": 7
+    },
+    "study_types": {
+      "Phase II": 28,
+      "Single-arm": 23,
+      "RCT": 21,
+      "Phase I": 16,
+      "Meta-Analysis": 11,
+      "Phase III": 10,
+      "Prospective": 9,
+      "Unknown": 6,
+      "Retrospective": 3
+    },
+    "lymphoma_subtypes": {
+      "DLBCL": 21,
+      "HL": 17,
+      "FL": 14,
+      "MCL": 12,
+      "Unspecified": 11,
+      "NHL": 8,
+      "PTCL": 3,
+      "CLL/SLL": 2,
+      "MZL": 1,
+      "WM": 1,
+      "CTCL": 1
+    },
+    "drugs": {
+      "Rituximab": 33,
+      "CAR-T": 17,
+      "Lenalidomide": 12,
+      "Brentuximab vedotin": 11,
+      "Nivolumab": 9,
+      "Ibrutinib": 9,
+      "Obinutuzumab": 8,
+      "R-CHOP": 7,
+      "Venetoclax": 7,
+      "Autologous transplant": 7,
+      "CHOP": 6,
+      "Polatuzumab vedotin": 5,
+      "Acalabrutinib": 5,
+      "Zanubrutinib": 4,
+      "Pembrolizumab": 3,
+      "Copanlisib": 2,
+      "Axicabtagene ciloleucel": 1
+    },
+    "sample_size": {
+      "median": 73.5,
+      "mean": 214.75,
+      "min": 6,
+      "max": 1137,
+      "total_patients": 11167
+    },
+    "orr": {
+      "n_studies": 41,
+      "median": 0.69,
+      "mean": 0.6630512195121951,
+      "min": 0.102,
+      "max": 1.0
+    },
+    "cr_rate": {
+      "n_studies": 36,
+      "median": 0.655,
+      "mean": 0.6057555555555555,
+      "min": 0.102,
+      "max": 1.0
+    },
+    "pr_rate": {
+      "n_studies": 5,
+      "median": 0.2952,
+      "mean": 0.34924,
+      "min": 0.155,
+      "max": 0.7
+    },
+    "pfs_median": {
+      "n_studies": 40,
+      "median": 17.1,
+      "mean": 24.66875,
+      "min": 2.9,
+      "max": 97.8
+    },
+    "os_median": {
+      "n_studies": 24,
+      "median": 27.25,
+      "mean": 27.611250000000002,
+      "min": 3.9,
+      "max": 69.47
+    }
+  },
+  "orr_meta": {
+    "k": 26,
+    "pooled_proportion_fixed": 0.6989649797671966,
+    "ci_fixed": [
+      0.6843935769003988,
+      0.7133382798750989
+    ],
+    "pooled_proportion_random": 0.6710479238042267,
+    "ci_random": [
+      0.5831810095179603,
+      0.7532642171001687
+    ],
+    "Q": 720.3524766567296,
+    "df_Q": 25,
+    "p_heterogeneity": 0.0,
+    "I2": 96.52947677558784,
+    "tau2": 0.2013540232558864,
+    "studies": [
+      {
+        "study": "Unknown ",
+        "proportion": 0.95,
+        "sample_size": 488,
+        "weight_fixed": 12.674961119751165,
+        "weight_random": 4.23951925630405,
+        "ci_lower": 0.9278632337267366,
+        "ci_upper": 0.9667802774017015
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.28600000000000003,
+        "sample_size": 20,
+        "weight_fixed": 0.5443234836702955,
+        "weight_random": 3.4634831366604377,
+        "ci_lower": 0.12496734784981196,
+        "ci_upper": 0.5036266253972266
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.95,
+        "sample_size": 199,
+        "weight_fixed": 5.1840331778123385,
+        "weight_random": 4.178808917084197,
+        "ci_lower": 0.9127499984768725,
+        "ci_upper": 0.9742193804548765
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.55,
+        "sample_size": 488,
+        "weight_fixed": 12.674961119751165,
+        "weight_random": 4.23951925630405,
+        "ci_lower": 0.5056637999200735,
+        "ci_upper": 0.5937401692478477
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 1.0,
+        "sample_size": 34,
+        "weight_fixed": 0.9072058061171592,
+        "weight_random": 3.7504070367361377,
+        "ci_lower": 0.9385161004479781,
+        "ci_upper": 0.9934972811649333
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.7829999999999999,
+        "sample_size": 44,
+        "weight_fixed": 1.166407465007776,
+        "weight_random": 3.856912574114816,
+        "ci_lower": 0.6451424864046547,
+        "ci_upper": 0.885013579324068
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.68,
+        "sample_size": 62,
+        "weight_fixed": 1.6329704510108864,
+        "weight_random": 3.969644091802963,
+        "ci_lower": 0.5575064223955628,
+        "ci_upper": 0.7860817940403106
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.701,
+        "sample_size": 10,
+        "weight_fixed": 0.2851218247796786,
+        "weight_random": 2.950471649224736,
+        "ci_lower": 0.3933498883541143,
+        "ci_upper": 0.9115853273828335
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.465,
+        "sample_size": 71,
+        "weight_fixed": 1.8662519440124419,
+        "weight_random": 4.006236599688327,
+        "ci_lower": 0.35220281328585257,
+        "ci_upper": 0.580596230385072
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.763,
+        "sample_size": 76,
+        "weight_fixed": 1.99585277345775,
+        "weight_random": 4.023093512903852,
+        "ci_lower": 0.6585099159397497,
+        "ci_upper": 0.8478202312726558
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.539,
+        "sample_size": 84,
+        "weight_fixed": 2.2032141005702437,
+        "weight_random": 4.0461672981287276,
+        "ci_lower": 0.4324930084427139,
+        "ci_upper": 0.6428592612606085
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.51,
+        "sample_size": 99,
+        "weight_fixed": 2.5920165889061693,
+        "weight_random": 4.0799508766099715,
+        "ci_lower": 0.4123562827228995,
+        "ci_upper": 0.607065586343704
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.593,
+        "sample_size": 54,
+        "weight_fixed": 1.425609123898393,
+        "weight_random": 3.9278963599325887,
+        "ci_lower": 0.4597407198515107,
+        "ci_upper": 0.7165669567848735
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.7,
+        "sample_size": 6,
+        "weight_fixed": 0.18144116122343182,
+        "weight_random": 2.505189015787879,
+        "ci_lower": 0.3115063991004078,
+        "ci_upper": 0.9444823060745592
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.73,
+        "sample_size": 64,
+        "weight_fixed": 1.6848107827890098,
+        "weight_random": 3.978589317838218,
+        "ci_lower": 0.6125320616102842,
+        "ci_upper": 0.8271380496782493
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.15,
+        "sample_size": 21,
+        "weight_fixed": 0.5702436495593572,
+        "weight_random": 3.4938577577085987,
+        "ci_lower": 0.04334822951784295,
+        "ci_upper": 0.3448179036189768
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.92,
+        "sample_size": 39,
+        "weight_fixed": 1.0368066355624677,
+        "weight_random": 3.8095812040551977,
+        "ci_lower": 0.8030412800933666,
+        "ci_upper": 0.9776883769602017
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.526,
+        "sample_size": 398,
+        "weight_fixed": 10.342146189735614,
+        "weight_random": 4.229926470849328,
+        "ci_lower": 0.47689342987075095,
+        "ci_upper": 0.5747269047257225
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.64,
+        "sample_size": 118,
+        "weight_fixed": 3.084499740798341,
+        "weight_random": 4.111006790538301,
+        "ci_lower": 0.5507535123693479,
+        "ci_upper": 0.7224344913002007
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.7211,
+        "sample_size": 784,
+        "weight_fixed": 20.347330222913428,
+        "weight_random": 4.255652828820107,
+        "ci_lower": 0.6889222859892746,
+        "ci_upper": 0.7516346550831239
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.759,
+        "sample_size": 21,
+        "weight_fixed": 0.5702436495593572,
+        "weight_random": 3.4938577577085987,
+        "ci_lower": 0.5499734639204715,
+        "ci_upper": 0.9025549960863973
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.491,
+        "sample_size": 36,
+        "weight_fixed": 0.9590461378952826,
+        "weight_random": 3.775768748719223,
+        "ci_lower": 0.3333776849779298,
+        "ci_upper": 0.6500040777263196
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.96,
+        "sample_size": 25,
+        "weight_fixed": 0.673924313115604,
+        "weight_random": 3.5957384344972745,
+        "ci_lower": 0.825149607302242,
+        "ci_upper": 0.9977906152736021
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.24,
+        "sample_size": 132,
+        "weight_fixed": 3.4473820632452044,
+        "weight_random": 4.1284166672932034,
+        "ci_lower": 0.1732282224641186,
+        "ci_upper": 0.31809745889714947
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.67,
+        "sample_size": 28,
+        "weight_fixed": 0.751684810782789,
+        "weight_random": 3.6564017944799874,
+        "ci_lower": 0.4853754333583508,
+        "ci_upper": 0.8216008654217303
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.69,
+        "sample_size": 431,
+        "weight_fixed": 11.19751166407465,
+        "weight_random": 4.233902646209215,
+        "ci_lower": 0.645152838080051,
+        "ci_upper": 0.7322842805641725
+      }
+    ],
+    "model": "random"
+  },
+  "cr_meta": {
+    "k": 23,
+    "pooled_proportion_fixed": 0.4969747175366894,
+    "ci_fixed": [
+      0.47988681527287524,
+      0.5140661551802577
+    ],
+    "pooled_proportion_random": 0.576767395478448,
+    "ci_random": [
+      0.4816616800265137,
+      0.6690860346314019
+    ],
+    "Q": 584.7198212110918,
+    "df_Q": 22,
+    "p_heterogeneity": 0.0,
+    "I2": 96.23751424153318,
+    "tau2": 0.19497241869904183,
+    "studies": [
+      {
+        "study": "Unknown ",
+        "proportion": 0.28600000000000003,
+        "sample_size": 20,
+        "weight_fixed": 0.6388804380894433,
+        "weight_random": 3.9075336173889723,
+        "ci_lower": 0.12496734784981196,
+        "ci_upper": 0.5036266253972266
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.879,
+        "sample_size": 199,
+        "weight_fixed": 6.084575600851841,
+        "weight_random": 4.740325271337837,
+        "ci_lower": 0.8281448042117691,
+        "ci_upper": 0.9188550081424216
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.55,
+        "sample_size": 488,
+        "weight_fixed": 14.876787344082748,
+        "weight_random": 4.811424113591815,
+        "ci_lower": 0.5056637999200735,
+        "ci_upper": 0.5937401692478477
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 1.0,
+        "sample_size": 34,
+        "weight_fixed": 1.064800730149072,
+        "weight_random": 4.240484904881741,
+        "ci_lower": 0.9385161004479781,
+        "ci_upper": 0.9934972811649333
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.7829999999999999,
+        "sample_size": 44,
+        "weight_fixed": 1.369029510191664,
+        "weight_random": 4.364446129558316,
+        "ci_lower": 0.6451424864046547,
+        "ci_upper": 0.885013579324068
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.68,
+        "sample_size": 62,
+        "weight_fixed": 1.9166413142683298,
+        "weight_random": 4.495873063856438,
+        "ci_lower": 0.5575064223955628,
+        "ci_upper": 0.7860817940403106
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.465,
+        "sample_size": 71,
+        "weight_fixed": 2.1904472163066626,
+        "weight_random": 4.538582664625607,
+        "ci_lower": 0.35220281328585257,
+        "ci_upper": 0.580596230385072
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.5660000000000001,
+        "sample_size": 76,
+        "weight_fixed": 2.3425616063279584,
+        "weight_random": 4.558265534023312,
+        "ci_lower": 0.4537191871133715,
+        "ci_upper": 0.6733408812877667
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.433,
+        "sample_size": 84,
+        "weight_fixed": 2.585944630362032,
+        "weight_random": 4.585215702545028,
+        "ci_lower": 0.3307064470868646,
+        "ci_upper": 0.539842111397178
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.51,
+        "sample_size": 99,
+        "weight_fixed": 3.0422878004259206,
+        "weight_random": 4.624692024156958,
+        "ci_lower": 0.4123562827228995,
+        "ci_upper": 0.607065586343704
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.276,
+        "sample_size": 31,
+        "weight_fixed": 0.9735320961362944,
+        "weight_random": 4.190275726786905,
+        "ci_lower": 0.14282301419427756,
+        "ci_upper": 0.4487223923175616
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.5,
+        "sample_size": 56,
+        "weight_fixed": 1.7341040462427744,
+        "weight_random": 4.460525646777146,
+        "ci_lower": 0.3716489810982637,
+        "ci_upper": 0.6283510189017363
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.7,
+        "sample_size": 6,
+        "weight_fixed": 0.21296014602981442,
+        "weight_random": 2.805954297081155,
+        "ci_lower": 0.3115063991004078,
+        "ci_upper": 0.9444823060745592
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.92,
+        "sample_size": 39,
+        "weight_fixed": 1.216915120170368,
+        "weight_random": 4.309332576947058,
+        "ci_lower": 0.8030412800933666,
+        "ci_upper": 0.9776883769602017
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.34299999999999997,
+        "sample_size": 398,
+        "weight_fixed": 12.138728323699421,
+        "weight_random": 4.800185462984861,
+        "ci_lower": 0.29762825444070246,
+        "ci_upper": 0.39066423664916144
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.64,
+        "sample_size": 118,
+        "weight_fixed": 3.620322482506845,
+        "weight_random": 4.66099901240204,
+        "ci_lower": 0.5507535123693479,
+        "ci_upper": 0.7224344913002007
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.2952,
+        "sample_size": 784,
+        "weight_fixed": 23.881959233343476,
+        "weight_random": 4.830329490899317,
+        "ci_lower": 0.2640698761443666,
+        "ci_upper": 0.3278520663871573
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.25,
+        "sample_size": 21,
+        "weight_fixed": 0.6693033160937024,
+        "weight_random": 3.94271213824448,
+        "ci_lower": 0.10336812649718437,
+        "ci_upper": 0.4598413570456064
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.67,
+        "sample_size": 36,
+        "weight_fixed": 1.1256464861575906,
+        "weight_random": 4.269985030049583,
+        "ci_lower": 0.5075419571292396,
+        "ci_upper": 0.8063721577877127
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.88,
+        "sample_size": 25,
+        "weight_fixed": 0.7909948281107393,
+        "weight_random": 4.060824403869959,
+        "ci_lower": 0.7115082084673345,
+        "ci_upper": 0.9670173538757784
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.5,
+        "sample_size": 10,
+        "weight_fixed": 0.3346516580468512,
+        "weight_random": 3.315829384100371,
+        "ci_lower": 0.2214198371316239,
+        "ci_upper": 0.7785801628683761
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.24,
+        "sample_size": 132,
+        "weight_fixed": 4.046242774566474,
+        "weight_random": 4.681360160204238,
+        "ci_lower": 0.1732282224641186,
+        "ci_upper": 0.31809745889714947
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 0.64,
+        "sample_size": 431,
+        "weight_fixed": 13.142683297839975,
+        "weight_random": 4.804843643686859,
+        "ci_lower": 0.5938496667894726,
+        "ci_upper": 0.6842618323104908
+      }
+    ],
+    "model": "random"
+  },
+  "hr_pfs_meta": {
+    "error": "有效 HR 数据不足（0 篇）"
+  },
+  "hr_os_meta": {
+    "error": "有效 HR 数据不足（0 篇）"
+  },
+  "subgroup_lymphoma": {
+    "CLL/SLL": {
+      "k": 1,
+      "pooled_proportion": 0.6642474295318155,
+      "ci": [
+        0.4853754333583508,
+        0.8216008654217303
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 1.0
+    },
+    "DLBCL": {
+      "k": 12,
+      "pooled_proportion": 0.6131751079390846,
+      "ci": [
+        0.46894836170026466,
+        0.7479197541776477
+      ],
+      "I2": 96.79446645452241,
+      "p_heterogeneity": 0.0
+    },
+    "FL": {
+      "k": 3,
+      "pooled_proportion": 0.8975181212682118,
+      "ci": [
+        0.786812002734423,
+        0.970776532427666
+      ],
+      "I2": 75.41245353451565,
+      "p_heterogeneity": 0.017126991939811265
+    },
+    "HL": {
+      "k": 8,
+      "pooled_proportion": 0.5286347652545536,
+      "ci": [
+        0.41803934116993163,
+        0.6378251772615863
+      ],
+      "I2": 91.32800523097984,
+      "p_heterogeneity": 9.769962616701378e-15
+    },
+    "MCL": {
+      "k": 1,
+      "pooled_proportion": 0.9438593051049748,
+      "ci": [
+        0.825149607302242,
+        0.9977906152736021
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 1.0
+    },
+    "NHL": {
+      "k": 4,
+      "pooled_proportion": 0.5422708999793188,
+      "ci": [
+        0.39662325478280813,
+        0.6843179980879328
+      ],
+      "I2": 94.40827271038273,
+      "p_heterogeneity": 1.332012278254524e-11
+    },
+    "PTCL": {
+      "k": 1,
+      "pooled_proportion": 0.465482765798278,
+      "ci": [
+        0.35220281328585257,
+        0.580596230385072
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 1.0
+    }
+  },
+  "subgroup_drug": {
+    "Acalabrutinib": {
+      "k": 1,
+      "pooled_proportion": 0.7475663171978761,
+      "ci": [
+        0.5499734639204715,
+        0.9025549960863973
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 1.0
+    },
+    "Autologous transplant": {
+      "k": 2,
+      "pooled_proportion": 0.636578008901081,
+      "ci": [
+        0.3642326575385025,
+        0.8684022804355388
+      ],
+      "I2": 87.39705163976936,
+      "p_heterogeneity": 0.0048496973225108375
+    },
+    "Brentuximab vedotin": {
+      "k": 4,
+      "pooled_proportion": 0.519331031823994,
+      "ci": [
+        0.36414055367248876,
+        0.6726329425186057
+      ],
+      "I2": 75.9778640444369,
+      "p_heterogeneity": 0.005884109089544509
+    },
+    "CAR-T": {
+      "k": 6,
+      "pooled_proportion": 0.6025714055151435,
+      "ci": [
+        0.5276693418850668,
+        0.6751316849704077
+      ],
+      "I2": 76.41771007484311,
+      "p_heterogeneity": 0.0007417586412438171
+    },
+    "CHOP": {
+      "k": 1,
+      "pooled_proportion": 0.9928053803045811,
+      "ci": [
+        0.9385161004479781,
+        0.9934972811649333
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 1.0
+    },
+    "Ibrutinib": {
+      "k": 2,
+      "pooled_proportion": 0.6222784481120446,
+      "ci": [
+        0.393160947903423,
+        0.8257135421594142
+      ],
+      "I2": 87.45366919722571,
+      "p_heterogeneity": 0.004754691277654155
+    },
+    "Lenalidomide": {
+      "k": 6,
+      "pooled_proportion": 0.8001471438555946,
+      "ci": [
+        0.5961517210374306,
+        0.9442874560060385
+      ],
+      "I2": 96.89107440785313,
+      "p_heterogeneity": 0.0
+    },
+    "Nivolumab": {
+      "k": 5,
+      "pooled_proportion": 0.5337718862403301,
+      "ci": [
+        0.29384719525382846,
+        0.7656667289868954
+      ],
+      "I2": 92.49695296626565,
+      "p_heterogeneity": 7.333378349017039e-11
+    },
+    "Obinutuzumab": {
+      "k": 3,
+      "pooled_proportion": 0.8082587406984726,
+      "ci": [
+        0.6293935685457395,
+        0.937843662328755
+      ],
+      "I2": 75.455886895309,
+      "p_heterogeneity": 0.01700416883078859
+    },
+    "Polatuzumab vedotin": {
+      "k": 3,
+      "pooled_proportion": 0.7747310100101364,
+      "ci": [
+        0.40867736929910525,
+        0.9875439237258563
+      ],
+      "I2": 98.6706082738181,
+      "p_heterogeneity": 0.0
+    },
+    "R-CHOP": {
+      "k": 1,
+      "pooled_proportion": 0.9928053803045811,
+      "ci": [
+        0.9385161004479781,
+        0.9934972811649333
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 1.0
+    },
+    "Rituximab": {
+      "k": 12,
+      "pooled_proportion": 0.7049511196603022,
+      "ci": [
+        0.542769487629305,
+        0.8441163166301501
+      ],
+      "I2": 98.05332593253685,
+      "p_heterogeneity": 0.0
+    },
+    "Venetoclax": {
+      "k": 2,
+      "pooled_proportion": 0.8262625613964905,
+      "ci": [
+        0.48421594753914743,
+        0.9965583252489649
+      ],
+      "I2": 87.29288802710126,
+      "p_heterogeneity": 0.005027252839422736
+    },
+    "Zanubrutinib": {
+      "k": 3,
+      "pooled_proportion": 0.9211079311424198,
+      "ci": [
+        0.7170164255018909,
+        0.9999277470104798
+      ],
+      "I2": 89.60262350278508,
+      "p_heterogeneity": 6.653311241244797e-05
+    }
+  },
+  "publication_bias": {
+    "egger": {
+      "intercept": -1.1711228449887372,
+      "intercept_se": 0.15975427361083117,
+      "t_stat": -7.330776313638075,
+      "p_value": 1.4291584826686687e-07,
+      "bias_detected": "True",
+      "n_studies": 26
+    },
+    "begg": {
+      "tau": -0.6821020142872596,
+      "p_value": 1.096099497833127e-06,
+      "bias_detected": "True",
+      "n_studies": 26
+    },
+    "n_studies": 26
+  },
+  "sensitivity": [
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6548879814467501,
+      "ci": [
+        0.5780379293761697,
+        0.7278676999591339
+      ],
+      "I2": 94.55758073364825,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6839507951476612,
+      "ci": [
+        0.5957044964303713,
+        0.765976446675406
+      ],
+      "I2": 96.59968255238182,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6553747521027039,
+      "ci": [
+        0.5687573633605966,
+        0.7370806022264147
+      ],
+      "I2": 96.10939076436868,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6761144798528396,
+      "ci": [
+        0.5835876437755375,
+        0.7621697790230383
+      ],
+      "I2": 96.40062490226488,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6517240326920538,
+      "ci": [
+        0.5628382088701446,
+        0.7355815359724933
+      ],
+      "I2": 96.49950125510811,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6665469907057828,
+      "ci": [
+        0.5761021864859934,
+        0.7511980839852322
+      ],
+      "I2": 96.66165383863859,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.670770798629678,
+      "ci": [
+        0.5801619827608663,
+        0.7553911161123513
+      ],
+      "I2": 96.66764170659366,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6706582854537568,
+      "ci": [
+        0.5812117096332127,
+        0.7542699777159411
+      ],
+      "I2": 96.66824130012664,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6792223166918251,
+      "ci": [
+        0.589926464341575,
+        0.7623512600012905
+      ],
+      "I2": 96.58879794097135,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6671428435772137,
+      "ci": [
+        0.5762227051200719,
+        0.7521850360431132
+      ],
+      "I2": 96.66149439598834,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6764058646767359,
+      "ci": [
+        0.5863309528175711,
+        0.7603271844029676
+      ],
+      "I2": 96.62336544680996,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.677597668350971,
+      "ci": [
+        0.5877372565115498,
+        0.761283212312773
+      ],
+      "I2": 96.59468775442352,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6742055197378836,
+      "ci": [
+        0.5840609957991243,
+        0.758279145413793
+      ],
+      "I2": 96.65511418073446,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6709820094427578,
+      "ci": [
+        0.5818139633363877,
+        0.7543375475215612
+      ],
+      "I2": 96.66819962165997,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6686677687871418,
+      "ci": [
+        0.5779296057385789,
+        0.7534880317953336
+      ],
+      "I2": 96.66716480674697,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6893040701091615,
+      "ci": [
+        0.6022031713522148,
+        0.77012191846406
+      ],
+      "I2": 96.52908581318844,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6596180665490119,
+      "ci": [
+        0.5695992954327856,
+        0.7441735320643225
+      ],
+      "I2": 96.61039395424795,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6771385774500183,
+      "ci": [
+        0.5859795003726059,
+        0.7619673817100587
+      ],
+      "I2": 96.38291671589668,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6723700330211017,
+      "ci": [
+        0.5811416130304764,
+        0.7574622660550729
+      ],
+      "I2": 96.6589810954827,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6685957290294485,
+      "ci": [
+        0.5689154694090793,
+        0.7611700925422918
+      ],
+      "I2": 96.65769047293253,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6681616441324174,
+      "ci": [
+        0.578203874701768,
+        0.7523210934499244
+      ],
+      "I2": 96.66708747154857,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6777866675775764,
+      "ci": [
+        0.5883800850324413,
+        0.7610711910591187
+      ],
+      "I2": 96.63652615678849,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6579760436333012,
+      "ci": [
+        0.5681667295338768,
+        0.7424114164797648
+      ],
+      "I2": 96.61082846994036,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6892974579228308,
+      "ci": [
+        0.6065865674069935,
+        0.7663272154914419
+      ],
+      "I2": 95.97061880379603,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.67129389143105,
+      "ci": [
+        0.5813148257931475,
+        0.7553439791803972
+      ],
+      "I2": 96.66754645044709,
+      "k_remaining": 25
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.6700886077475643,
+      "ci": [
+        0.5744555075520884,
+        0.7590994836787697
+      ],
+      "I2": 96.66735993350721,
+      "k_remaining": 25
+    }
+  ]
+}
