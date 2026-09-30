@@ -24,6 +24,11 @@ uniform float uTime;             // 动画时间（流光流动）
 uniform float uUVAspect;         // UV纵横比校正系数
 uniform int   uUVCorrectMode;    // UV校正模式: 0=不校正, 1=纵横比, 2=宽边校正
 
+// 阴影相关
+uniform int   uShadowEnabled;       // 0=无阴影, 1=有阴影
+uniform mat4  uLightSpaceMatrix;    // 光源空间矩阵
+uniform sampler2D uShadowMap;       // 阴影深度贴图 (纹理单元1)
+
 out vec4 FragColor;
 
 // ============================================================
@@ -272,6 +277,32 @@ vec3 getNormalFromHeightMap(vec2 uv, vec3 baseNormal) {
 }
 
 // ============================================================
+// PCF 阴影（3×3 采样）
+// ============================================================
+float calculateShadow(vec4 lightSpacePos) {
+    vec3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
+    projCoords = projCoords * 0.5 + 0.5;
+
+    if (projCoords.z > 1.0) return 0.0;  // 超出远平面
+    if (projCoords.x < 0.0 || projCoords.x > 1.0) return 0.0;
+    if (projCoords.y < 0.0 || projCoords.y > 1.0) return 0.0;
+
+    float currentDepth = projCoords.z;
+    float bias = 0.003;
+    float shadow = 0.0;
+
+    vec2 texelSize = 1.0 / textureSize(uShadowMap, 0);
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            float pcfDepth = texture(uShadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+            shadow += (currentDepth - bias > pcfDepth) ? 1.0 : 0.0;
+        }
+    }
+    shadow /= 9.0;
+    return shadow;
+}
+
+// ============================================================
 // ACES 色调映射
 // ============================================================
 vec3 ACESFilm(vec3 x) {
@@ -291,6 +322,13 @@ void main() {
     vec3 lightDir = normalize(uLightDir);
     vec3 viewDir = normalize(uViewPos - vWorldPos);
 
+    // === 阴影计算 ===
+    float shadowFactor = 1.0;
+    if (uShadowEnabled == 1) {
+        vec4 lightSpacePos = uLightSpaceMatrix * vec4(vWorldPos, 1.0);
+        shadowFactor = 1.0 - calculateShadow(lightSpacePos);
+    }
+
     // === 视差映射：如果有纹理且有浮雕高度，偏移UV ===
     vec2 effectiveUV = vUV;
     if (uTextureEnabled == 1 && uReliefHeight > 0.001) {
@@ -309,16 +347,16 @@ void main() {
     // Half-Lambert 漫反射：柔和的光照过渡
     float NdotL = dot(normal, lightDir);
     float halfLambert = NdotL * 0.5 + 0.5;
-    float diff = halfLambert * halfLambert;
+    float diff = halfLambert * halfLambert * shadowFactor;
 
     // 填充光（冷色，模拟环境反射）
     vec3 fillLightDir = normalize(vec3(-lightDir.x, lightDir.y * 0.3, -lightDir.z));
-    float fillDiff = max(dot(normal, fillLightDir), 0.0) * 0.3;
+    float fillDiff = max(dot(normal, fillLightDir), 0.0) * 0.3 * shadowFactor;
 
     // 双层高光：甲油层(柔和) + 清漆层(锐利)
     vec3 halfDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(normal, halfDir), 0.0), 32.0);
-    float specCoat = pow(max(dot(normal, halfDir), 0.0), 128.0);
+    float spec = pow(max(dot(normal, halfDir), 0.0), 32.0) * shadowFactor;
+    float specCoat = pow(max(dot(normal, halfDir), 0.0), 128.0) * shadowFactor;
 
     // 菲涅尔（Schlick近似）
     float NdotV = max(dot(normal, viewDir), 0.0);
@@ -333,7 +371,7 @@ void main() {
     ) * ambient;
 
     // SSS 近似：阴影区域透出暖色
-    float sss = pow(1.0 - abs(NdotL), 2.0) * 0.15;
+    float sss = pow(1.0 - abs(NdotL), 2.0) * 0.15 * shadowFactor;
 
     // === 获取基础颜色 ===
     vec3 baseCol;

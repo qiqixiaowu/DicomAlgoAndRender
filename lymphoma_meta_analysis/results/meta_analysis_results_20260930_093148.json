@@ -1,0 +1,469 @@
+{
+  "descriptive": {
+    "total_studies": 26,
+    "year_range": "2025–2026",
+    "year_distribution": {
+      "2025": 19,
+      "2026": 7
+    },
+    "study_types": {
+      "RCT": 8,
+      "Meta-Analysis": 5,
+      "Unknown": 5,
+      "Prospective": 5,
+      "Phase II": 5,
+      "Phase I": 4,
+      "Single-arm": 4,
+      "Phase III": 4,
+      "Retrospective": 3
+    },
+    "lymphoma_subtypes": {
+      "DLBCL": 9,
+      "FL": 7,
+      "MCL": 5,
+      "HL": 4,
+      "NHL": 4,
+      "Unspecified": 2,
+      "CLL/SLL": 1,
+      "MZL": 1,
+      "WM": 1,
+      "CTCL": 1
+    },
+    "drugs": {
+      "Rituximab": 15,
+      "CAR-T": 8,
+      "Lenalidomide": 7,
+      "R-CHOP": 5,
+      "CHOP": 5,
+      "Polatuzumab vedotin": 5,
+      "Ibrutinib": 3,
+      "Brentuximab vedotin": 2,
+      "Nivolumab": 2,
+      "Zanubrutinib": 2,
+      "Obinutuzumab": 2,
+      "Venetoclax": 2,
+      "Axicabtagene ciloleucel": 1
+    },
+    "sample_size": {
+      "median": 155.0,
+      "mean": 268.53846153846155,
+      "min": 14,
+      "max": 879,
+      "total_patients": 3491
+    },
+    "orr": {
+      "n_studies": 14,
+      "median": 80.65,
+      "mean": 73.68571428571428,
+      "min": 6.0,
+      "max": 100.0
+    },
+    "cr_rate": {
+      "n_studies": 14,
+      "median": 66.5,
+      "mean": 61.98571428571428,
+      "min": 7.1,
+      "max": 96.0
+    },
+    "pr_rate": {
+      "n_studies": 2,
+      "median": 30.75,
+      "mean": 30.75,
+      "min": 11.5,
+      "max": 50.0
+    },
+    "pfs_median": {
+      "n_studies": 11,
+      "median": 15.0,
+      "mean": 28.87,
+      "min": 4.0,
+      "max": 97.8
+    },
+    "os_median": {
+      "n_studies": 5,
+      "median": 35.2,
+      "mean": 42.45400000000001,
+      "min": 24.9,
+      "max": 69.47
+    }
+  },
+  "orr_meta": {
+    "k": 6,
+    "pooled_proportion_fixed": 0.9977585009749964,
+    "ci_fixed": [
+      0.9922354698854705,
+      0.9999578369754382
+    ],
+    "pooled_proportion_random": 0.9977585009749964,
+    "ci_random": [
+      0.9922354698854705,
+      0.9999578369754382
+    ],
+    "Q": 0.8768329818875081,
+    "df_Q": 5,
+    "p_heterogeneity": 0.9718761199868763,
+    "I2": 0.0,
+    "tau2": 0.0,
+    "studies": [
+      {
+        "study": "Unknown ",
+        "proportion": 6.0,
+        "sample_size": 42,
+        "weight_fixed": 7.478260869565218,
+        "weight_random": 7.478260869565218,
+        "ci_lower": 0.9497891878087814,
+        "ci_upper": 0.9946949050258717
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 28.6,
+        "sample_size": 42,
+        "weight_fixed": 7.478260869565218,
+        "weight_random": 7.478260869565218,
+        "ci_lower": 0.9497891878087814,
+        "ci_upper": 0.9946949050258717
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 95.0,
+        "sample_size": 199,
+        "weight_fixed": 34.78260869565217,
+        "weight_random": 34.78260869565217,
+        "ci_lower": 0.9890817873541635,
+        "ci_upper": 0.998850444404414
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 100.0,
+        "sample_size": 34,
+        "weight_fixed": 6.086956521739131,
+        "weight_random": 6.086956521739131,
+        "ci_lower": 0.9385161004479781,
+        "ci_upper": 0.9934972811649333
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 78.3,
+        "sample_size": 44,
+        "weight_fixed": 7.82608695652174,
+        "weight_random": 7.82608695652174,
+        "ci_lower": 0.9519899451617041,
+        "ci_upper": 0.9949284256684683
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 70.0,
+        "sample_size": 208,
+        "weight_fixed": 36.347826086956516,
+        "weight_random": 36.347826086956516,
+        "ci_lower": 0.9895505584235309,
+        "ci_upper": 0.9988998459892159
+      }
+    ],
+    "model": "random"
+  },
+  "cr_meta": {
+    "k": 6,
+    "pooled_proportion_fixed": 0.9977596663885208,
+    "ci_fixed": [
+      0.9920552760650108,
+      0.9999703187238209
+    ],
+    "pooled_proportion_random": 0.9977596663885208,
+    "ci_random": [
+      0.9920552760650108,
+      0.9999703187238209
+    ],
+    "Q": 1.1458207642272389,
+    "df_Q": 5,
+    "p_heterogeneity": 0.9499683168159178,
+    "I2": 0.0,
+    "tau2": 0.0,
+    "studies": [
+      {
+        "study": "Unknown ",
+        "proportion": 7.1,
+        "sample_size": 42,
+        "weight_fixed": 7.861060329067642,
+        "weight_random": 7.861060329067642,
+        "ci_lower": 0.9497891878087814,
+        "ci_upper": 0.9946949050258717
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 87.9,
+        "sample_size": 199,
+        "weight_fixed": 36.56307129798903,
+        "weight_random": 36.56307129798903,
+        "ci_lower": 0.9890817873541635,
+        "ci_upper": 0.998850444404414
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 70.6,
+        "sample_size": 34,
+        "weight_fixed": 6.39853747714808,
+        "weight_random": 6.39853747714808,
+        "ci_lower": 0.9385161004479781,
+        "ci_upper": 0.9934972811649333
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 59.7,
+        "sample_size": 44,
+        "weight_fixed": 8.226691042047532,
+        "weight_random": 8.226691042047532,
+        "ci_lower": 0.9519899451617041,
+        "ci_upper": 0.9949284256684683
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 51.0,
+        "sample_size": 208,
+        "weight_fixed": 38.20840950639854,
+        "weight_random": 38.20840950639854,
+        "ci_lower": 0.9895505584235309,
+        "ci_upper": 0.9988998459892159
+      },
+      {
+        "study": "Unknown ",
+        "proportion": 65.0,
+        "sample_size": 14,
+        "weight_fixed": 2.742230347349177,
+        "weight_random": 2.742230347349177,
+        "ci_lower": 0.8599190634841607,
+        "ci_upper": 0.9850792830159447
+      }
+    ],
+    "model": "random"
+  },
+  "hr_pfs_meta": {
+    "error": "有效 HR 数据不足（0 篇）"
+  },
+  "hr_os_meta": {
+    "error": "有效 HR 数据不足（0 篇）"
+  },
+  "subgroup_lymphoma": {
+    "CLL/SLL": {
+      "k": 1,
+      "pooled_proportion": 0.9941518456017623,
+      "ci": [
+        0.9497891878087814,
+        0.9946949050258717
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 1.0
+    },
+    "DLBCL": {
+      "k": 4,
+      "pooled_proportion": 0.9973176742037212,
+      "ci": [
+        0.9886978989654972,
+        0.9999916830877447
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 0.901028965657736
+    },
+    "HL": {
+      "k": 1,
+      "pooled_proportion": 0.9941518456017623,
+      "ci": [
+        0.9497891878087814,
+        0.9946949050258717
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 1.0
+    },
+    "NHL": {
+      "k": 1,
+      "pooled_proportion": 0.9941518456017623,
+      "ci": [
+        0.9497891878087814,
+        0.9946949050258717
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 1.0
+    }
+  },
+  "subgroup_drug": {
+    "Brentuximab vedotin": {
+      "k": 1,
+      "pooled_proportion": 0.9941518456017623,
+      "ci": [
+        0.9497891878087814,
+        0.9946949050258717
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 1.0
+    },
+    "CAR-T": {
+      "k": 1,
+      "pooled_proportion": 0.9944132324730443,
+      "ci": [
+        0.9519899451617041,
+        0.9949284256684683
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 1.0
+    },
+    "CHOP": {
+      "k": 2,
+      "pooled_proportion": 0.9935647888965302,
+      "ci": [
+        0.9638600480184693,
+        0.9990604370451411
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 0.9413465475079436
+    },
+    "Lenalidomide": {
+      "k": 2,
+      "pooled_proportion": 0.9935647888965302,
+      "ci": [
+        0.9638600480184693,
+        0.9990604370451411
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 0.9413465475079436
+    },
+    "Nivolumab": {
+      "k": 1,
+      "pooled_proportion": 0.9941518456017623,
+      "ci": [
+        0.9497891878087814,
+        0.9946949050258717
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 1.0
+    },
+    "Obinutuzumab": {
+      "k": 1,
+      "pooled_proportion": 0.9944132324730443,
+      "ci": [
+        0.9519899451617041,
+        0.9949284256684683
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 1.0
+    },
+    "Polatuzumab vedotin": {
+      "k": 3,
+      "pooled_proportion": 0.9984846042523011,
+      "ci": [
+        0.9928039506014327,
+        0.9999502171332278
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 0.8792303676003589
+    },
+    "R-CHOP": {
+      "k": 2,
+      "pooled_proportion": 0.9935647888965302,
+      "ci": [
+        0.9638600480184693,
+        0.9990604370451411
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 0.9413465475079436
+    },
+    "Rituximab": {
+      "k": 5,
+      "pooled_proportion": 0.9979735502496829,
+      "ci": [
+        0.9923458831401968,
+        0.9999939344148588
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 0.9476212033960842
+    },
+    "Zanubrutinib": {
+      "k": 1,
+      "pooled_proportion": 0.9928053803045811,
+      "ci": [
+        0.9385161004479781,
+        0.9934972811649333
+      ],
+      "I2": 0.0,
+      "p_heterogeneity": 1.0
+    }
+  },
+  "publication_bias": {
+    "egger": {
+      "intercept": 3.552713678800501e-15,
+      "intercept_se": 0.0,
+      "t_stat": 0,
+      "p_value": 1.0,
+      "bias_detected": "False",
+      "n_studies": 6
+    },
+    "begg": {
+      "tau": -1.0,
+      "p_value": 0.006435091231559117,
+      "bias_detected": "True",
+      "n_studies": 6
+    },
+    "n_studies": 6
+  },
+  "sensitivity": [
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.9979760810826677,
+      "ci": [
+        0.992364738149816,
+        0.9999936758594885
+      ],
+      "I2": 0.0,
+      "k_remaining": 5
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.9979760810826677,
+      "ci": [
+        0.992364738149816,
+        0.9999936758594885
+      ],
+      "I2": 0.0,
+      "k_remaining": 5
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.9971137106265864,
+      "ci": [
+        0.9891490808176696,
+        0.9999901210024172
+      ],
+      "I2": 0.0,
+      "k_remaining": 5
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.997982862229619,
+      "ci": [
+        0.9924327282587696,
+        0.9999924089777611
+      ],
+      "I2": 0.0,
+      "k_remaining": 5
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.9979735502496829,
+      "ci": [
+        0.9923458831401968,
+        0.9999939344148588
+      ],
+      "I2": 0.0,
+      "k_remaining": 5
+    },
+    {
+      "excluded_study": "Unknown ",
+      "pooled_proportion": 0.9970171963368458,
+      "ci": [
+        0.9888338492845701,
+        0.9999883254091532
+      ],
+      "I2": 0.0,
+      "k_remaining": 5
+    }
+  ]
+}

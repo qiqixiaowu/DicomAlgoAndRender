@@ -42,6 +42,15 @@ void NailMeshRenderer::render(const GLNailMesh& mesh, const RenderCamera& camera
     shader_.setFloat("uUVAspect", 1.0f);
     shader_.setInt("uUVCorrectMode", 0);
 
+    // 阴影
+    shader_.setInt("uShadowEnabled", shadowEnabled_ ? 1 : 0);
+    if (shadowEnabled_) {
+        shader_.setMat4("uLightSpaceMatrix", lightSpaceMatrix_);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, shadowMap_);
+        shader_.setInt("uShadowMap", 1);
+    }
+
     if (wireframe_)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     else
@@ -78,6 +87,15 @@ void NailMeshRenderer::renderWithTexture(const GLNailMesh& mesh, const RenderCam
     shader_.setFloat("uTime", (float)glfwGetTime());
     shader_.setFloat("uUVAspect", texXform.uvAspect);
     shader_.setInt("uUVCorrectMode", texXform.uvCorrectMode);
+
+    // 阴影
+    shader_.setInt("uShadowEnabled", shadowEnabled_ ? 1 : 0);
+    if (shadowEnabled_) {
+        shader_.setMat4("uLightSpaceMatrix", lightSpaceMatrix_);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, shadowMap_);
+        shader_.setInt("uShadowMap", 1);
+    }
 
     if (wireframe_)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -399,6 +417,12 @@ void NailRenderer::render(const GLNailMesh& mesh, const RenderCamera& camera) {
     // 手部模式下使用 nailTransform_ 变换指甲到手指上
     glm::mat4 nailModel = showHand_ ? nailTransform_ : glm::mat4(1.0f);
     meshRenderer_.setModelMatrix(nailModel);
+    // 指甲网格接收手部投影
+    if (showHand_ && handMesh_) {
+        meshRenderer_.setShadowParams(shadowMap_, lightSpaceMatrix_);
+    } else {
+        meshRenderer_.clearShadow();
+    }
     sliceRenderer_.setModelMatrix(nailModel);
     colorRenderer_.setModelMatrix(nailModel);
     normalRenderer_.setModelMatrix(nailModel);

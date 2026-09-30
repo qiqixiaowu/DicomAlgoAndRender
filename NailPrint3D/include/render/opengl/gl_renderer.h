@@ -52,10 +52,23 @@ public:
     void setWireframe(bool wireframe) { wireframe_ = wireframe; }
     void setModelMatrix(const glm::mat4& m) { modelMatrix_ = m; }
 
+    // 阴影参数
+    void setShadowParams(GLuint shadowMap, const glm::mat4& lightSpaceMatrix) {
+        shadowMap_ = shadowMap;
+        lightSpaceMatrix_ = lightSpaceMatrix;
+        shadowEnabled_ = (shadowMap != 0);
+    }
+    void clearShadow() { shadowEnabled_ = false; shadowMap_ = 0; }
+
 private:
     NailShader shader_;
     bool wireframe_ = false;
     glm::mat4 modelMatrix_ = glm::mat4(1.0f);
+
+    // 阴影
+    GLuint shadowMap_ = 0;
+    glm::mat4 lightSpaceMatrix_ = glm::mat4(1.0f);
+    bool shadowEnabled_ = false;
 };
 
 // ============================================================
